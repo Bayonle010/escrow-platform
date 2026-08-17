@@ -8,6 +8,39 @@ The platform connects buyers and sellers through a trusted escrow process: funds
 
 ---
 
+## Run Locally with Docker Compose
+
+Docker Compose is the primary interface for running the local platform consistently across contributor machines.
+
+From the repository root:
+
+```bash
+docker compose build
+docker compose up
+```
+
+When the Identity Service is healthy, verify it from another terminal:
+
+```bash
+curl http://localhost:8081/actuator/health
+```
+
+Expected response:
+
+```json
+{"status":"UP"}
+```
+
+Stop the platform without deleting persistent volumes:
+
+```bash
+docker compose down
+```
+
+The Compose environment currently contains only the Identity Service. Databases, brokers, and other services will be added when their first implemented use cases require them.
+
+---
+
 ## Why This Project Exists
 
 This project is intentionally more than a CRUD-based microservices application.
