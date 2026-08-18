@@ -31,13 +31,40 @@ Expected response:
 {"status":"UP"}
 ```
 
+PostgreSQL starts with these local-development defaults:
+
+```text
+Host: localhost
+Port: 5432
+Database: identity_db
+Username: identity_local
+Password: identity_local_password
+```
+
+These credentials are for local development only. Override them with `IDENTITY_DB_NAME`, `IDENTITY_DB_USER`, `IDENTITY_DB_PASSWORD`, and `IDENTITY_DB_PORT` when needed.
+
+Inspect the database from inside its container:
+
+```bash
+docker compose exec postgres psql \
+  --username identity_local \
+  --dbname identity_db \
+  --command "select current_database(), current_user;"
+```
+
 Stop the platform without deleting persistent volumes:
 
 ```bash
 docker compose down
 ```
 
-The Compose environment currently contains only the Identity Service. Databases, brokers, and other services will be added when their first implemented use cases require them.
+PostgreSQL data is stored in the `identity-postgres-data` named volume and survives an ordinary shutdown. To deliberately remove that local data and start with an empty database:
+
+```bash
+docker compose down --volumes
+```
+
+The Compose environment currently contains the Identity Service and its PostgreSQL development database. Brokers and other services will be added when their first implemented use cases require them.
 
 ---
 
