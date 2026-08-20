@@ -23,6 +23,8 @@ import io.github.bayonle010.escrow.identity.shared.exception.InvalidPasswordExce
 class RegistrationServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-08-20T12:00:00Z");
+    private static final UUID CORRELATION_ID =
+            UUID.fromString("019c0000-0000-7000-8000-000000000010");
 
     private final RegistrationPersistenceService persistenceService = mock(RegistrationPersistenceService.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
@@ -39,7 +41,7 @@ class RegistrationServiceTest {
         when(persistenceService.save(org.mockito.ArgumentMatchers.any(UserRegistration.class)))
                 .thenReturn(generatedUserId);
 
-        var result = service.register(" Alice@Example.COM ", "A-secure-password1!");
+        var result = service.register(" Alice@Example.COM ", "A-secure-password1!", CORRELATION_ID);
 
         ArgumentCaptor<UserRegistration> registration = ArgumentCaptor.forClass(UserRegistration.class);
         verify(persistenceService).save(registration.capture());
@@ -48,6 +50,7 @@ class RegistrationServiceTest {
         assertThat(registration.getValue().passwordHash()).doesNotContain("A-secure-password1!");
         assertThat(registration.getValue().status()).isEqualTo(UserStatus.PENDING_VERIFICATION);
         assertThat(registration.getValue().createdAt()).isEqualTo(NOW);
+        assertThat(registration.getValue().correlationId()).isEqualTo(CORRELATION_ID);
         assertThat(result.userId()).isEqualTo(generatedUserId);
         assertThat(result.email()).isEqualTo("alice@example.com");
     }
@@ -56,7 +59,7 @@ class RegistrationServiceTest {
     void rejectsPasswordsLongerThanBcryptsUtf8LimitBeforeHashing() {
         String password = "\u00e9".repeat(37);
 
-        assertThatThrownBy(() -> service.register("alice@example.com", password))
+        assertThatThrownBy(() -> service.register("alice@example.com", password, CORRELATION_ID))
                 .isInstanceOf(InvalidPasswordException.class)
                 .hasMessage("Password must be at most 72 UTF-8 bytes.");
 

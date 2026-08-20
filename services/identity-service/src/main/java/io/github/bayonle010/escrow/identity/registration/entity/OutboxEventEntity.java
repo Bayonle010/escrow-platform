@@ -49,6 +49,9 @@ public class OutboxEventEntity {
     @Column(name = "event_version", nullable = false, updatable = false)
     private int eventVersion;
 
+    @Column(name = "correlation_id", nullable = false, updatable = false)
+    private UUID correlationId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", nullable = false, updatable = false, columnDefinition = "jsonb")
     private Map<String, Object> payload;

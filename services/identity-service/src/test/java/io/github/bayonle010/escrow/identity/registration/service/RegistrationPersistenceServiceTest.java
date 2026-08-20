@@ -34,7 +34,8 @@ class RegistrationPersistenceServiceTest {
                 "alice@example.com",
                 "bcrypt-hash",
                 UserStatus.PENDING_VERIFICATION,
-                Instant.parse("2026-08-20T12:00:00Z"));
+                Instant.parse("2026-08-20T12:00:00Z"),
+                UUID.fromString("019c0000-0000-7000-8000-000000000010"));
         when(entityBuilder.buildUser(registration)).thenReturn(userEntity);
         when(userRepository.save(userEntity)).thenReturn(userEntity);
         when(userEntity.getUserId()).thenReturn(generatedUserId);

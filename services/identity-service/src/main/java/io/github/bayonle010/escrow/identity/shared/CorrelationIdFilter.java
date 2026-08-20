@@ -1,6 +1,7 @@
 package io.github.bayonle010.escrow.identity.shared;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,10 +27,11 @@ public final class CorrelationIdFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        String correlationId = uuidGenerator.generate().toString();
+        UUID correlationId = uuidGenerator.generate();
+        String correlationIdValue = correlationId.toString();
         request.setAttribute(ATTRIBUTE_NAME, correlationId);
-        response.setHeader(HEADER_NAME, correlationId);
-        MDC.put(ATTRIBUTE_NAME, correlationId);
+        response.setHeader(HEADER_NAME, correlationIdValue);
+        MDC.put(ATTRIBUTE_NAME, correlationIdValue);
         try {
             filterChain.doFilter(request, response);
         } finally {

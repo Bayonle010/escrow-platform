@@ -30,6 +30,7 @@ public class RegistrationEntityBuilder {
                 .aggregateType("User")
                 .eventType("UserRegistered")
                 .eventVersion(1)
+                .correlationId(registration.correlationId())
                 .payload(buildPayload(registration, userId))
                 .occurredAt(registration.createdAt())
                 .status(OutboxStatus.PENDING)

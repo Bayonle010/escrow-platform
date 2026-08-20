@@ -1,6 +1,7 @@
 package io.github.bayonle010.escrow.identity.registration.controller;
 
 import java.net.URI;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 
@@ -39,12 +40,16 @@ public class RegistrationController {
     public ResponseEntity<ApiResponse<RegisteredUserResponse>> register(
             @Valid @RequestBody RegisterUserRequest request,
             @Parameter(hidden = true)
-            @RequestAttribute(CorrelationIdFilter.ATTRIBUTE_NAME) String correlationId) {
-        RegisteredUser registeredUser = registrationService.register(request.email(), request.password());
+            @RequestAttribute(CorrelationIdFilter.ATTRIBUTE_NAME) UUID correlationId) {
+        RegisteredUser registeredUser = registrationService.register(
+                request.email(),
+                request.password(),
+                correlationId);
+
         RegisteredUserResponse response = RegisteredUserResponse.from(registeredUser);
 
         return ResponseEntity
                 .created(URI.create("/api/v1/users/" + registeredUser.userId()))
-                .body(new ApiResponse<>(response, correlationId));
+                .body(new ApiResponse<>(response, correlationId.toString()));
     }
 }

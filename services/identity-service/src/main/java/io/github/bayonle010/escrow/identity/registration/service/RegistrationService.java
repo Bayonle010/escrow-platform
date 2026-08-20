@@ -35,7 +35,7 @@ public class RegistrationService {
         this.clock = clock;
     }
 
-    public RegisteredUser register(String email, String password) {
+    public RegisteredUser register(String email, String password, UUID correlationId) {
         validatePasswordLength(password);
 
         String normalizedEmail = email.strip().toLowerCase(Locale.ROOT);
@@ -46,7 +46,8 @@ public class RegistrationService {
                 normalizedEmail,
                 passwordHash,
                 UserStatus.PENDING_VERIFICATION,
-                createdAt);
+                createdAt,
+                correlationId);
 
         UUID userId;
         try {

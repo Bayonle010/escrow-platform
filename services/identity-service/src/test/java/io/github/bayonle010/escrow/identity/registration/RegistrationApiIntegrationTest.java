@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,7 @@ class RegistrationApiIntegrationTest {
         assertThat(response.headers().firstValue("Location")).hasValueSatisfying(
                 value -> assertThat(value).startsWith("/api/v1/users/"));
         assertThat(response.headers().firstValue("X-Correlation-Id")).isPresent();
+        String responseCorrelationId = response.headers().firstValue("X-Correlation-Id").orElseThrow();
         assertThat(response.body())
                 .contains("\"email\":\"alice@example.com\"")
                 .contains("\"status\":\"PENDING_VERIFICATION\"")
@@ -73,6 +75,12 @@ class RegistrationApiIntegrationTest {
         assertThat(passwordEncoder.matches("A-secure-password1!", passwordHash)).isTrue();
 
         assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM outbox_events", Integer.class)).isEqualTo(1);
+        UUID correlationId = jdbcTemplate.queryForObject(
+                "SELECT correlation_id FROM outbox_events",
+                UUID.class);
+        assertThat(correlationId).isNotNull();
+        assertThat(correlationId.version()).isEqualTo(7);
+        assertThat(correlationId.toString()).isEqualTo(responseCorrelationId);
         String eventPayload = jdbcTemplate.queryForObject(
                 "SELECT payload::text FROM outbox_events",
                 String.class);

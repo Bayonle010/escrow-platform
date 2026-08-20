@@ -22,9 +22,10 @@ class CorrelationIdFilterTest {
 
         filter.doFilter(request, response, new MockFilterChain());
 
-        String generatedId = response.getHeader(CorrelationIdFilter.HEADER_NAME);
-        assertThat(generatedId).isNotEqualTo(clientProvidedId);
-        assertThat(UUID.fromString(generatedId).version()).isEqualTo(7);
+        String generatedIdValue = response.getHeader(CorrelationIdFilter.HEADER_NAME);
+        UUID generatedId = UUID.fromString(generatedIdValue);
+        assertThat(generatedIdValue).isNotEqualTo(clientProvidedId);
+        assertThat(generatedId.version()).isEqualTo(7);
         assertThat(request.getAttribute(CorrelationIdFilter.ATTRIBUTE_NAME)).isEqualTo(generatedId);
     }
 }
