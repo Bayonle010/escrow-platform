@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "management.health.db.enabled=false")
 class IdentityServiceApplicationTest {
 
     @LocalServerPort
@@ -29,6 +31,7 @@ class IdentityServiceApplicationTest {
                 .send(request, HttpResponse.BodyHandlers.ofString());
 
         assertThat(response.statusCode()).isEqualTo(200);
+        
         assertThat(response.body()).contains("\"status\":\"UP\"");
     }
 }

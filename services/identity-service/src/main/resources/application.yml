@@ -1,6 +1,10 @@
 spring:
   application:
     name: identity-service
+  datasource:
+    url: jdbc:postgresql://${IDENTITY_DB_HOST:localhost}:${IDENTITY_DB_PORT:5432}/${IDENTITY_DB_NAME:identity_db}
+    username: ${IDENTITY_DB_USER:identity_local}
+    password: ${IDENTITY_DB_PASSWORD:identity_local_password}
 
 server:
   port: ${SERVER_PORT:8081}
