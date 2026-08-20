@@ -31,6 +31,20 @@ Expected response:
 {"status":"UP"}
 ```
 
+Open Swagger UI in a browser:
+
+```text
+http://localhost:8081/swagger-ui.html
+```
+
+The generated OpenAPI document is available at:
+
+```text
+http://localhost:8081/v3/api-docs
+```
+
+Swagger is enabled by default for local development. Set `SWAGGER_ENABLED=false` in environments where the documentation endpoints should not be exposed.
+
 Register a user:
 
 ```bash

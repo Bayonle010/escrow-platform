@@ -40,4 +40,30 @@ class IdentityServiceApplicationTest {
         
         assertThat(response.body()).contains("\"status\":\"UP\"");
     }
+
+    @Test
+    void exposesOpenApiDescription() throws IOException, InterruptedException {
+        HttpResponse<String> response = get("/v3/api-docs");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body())
+                .contains("\"title\":\"Escrow Platform Identity API\"")
+                .contains("/api/v1/auth/register");
+    }
+
+    @Test
+    void exposesSwaggerUi() throws IOException, InterruptedException {
+        HttpResponse<String> response = get("/swagger-ui/index.html");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).containsIgnoringCase("swagger ui");
+    }
+
+    private HttpResponse<String> get(String path) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + path))
+                .GET()
+                .build();
+        return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+    }
 }

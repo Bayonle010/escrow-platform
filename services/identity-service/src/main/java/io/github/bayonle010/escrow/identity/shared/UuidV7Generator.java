@@ -23,7 +23,7 @@ public final class UuidV7Generator {
         this.random = new SecureRandom();
     }
 
-    public UUID generate() {
+    public UUID     generate() {
         long timestamp = clock.millis() & TIMESTAMP_MASK;
         long mostSignificantBits = (timestamp << 16)
                 | VERSION_7
