@@ -14,7 +14,13 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "management.health.db.enabled=false")
+        properties = {
+            "management.health.db.enabled=false",
+            "spring.flyway.enabled=false",
+            "spring.jpa.hibernate.ddl-auto=none",
+            "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+            "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false"
+        })
 class IdentityServiceApplicationTest {
 
     @LocalServerPort

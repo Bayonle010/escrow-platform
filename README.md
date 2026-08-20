@@ -31,6 +31,17 @@ Expected response:
 {"status":"UP"}
 ```
 
+Register a user:
+
+```bash
+curl --request POST http://localhost:8081/api/v1/auth/register \
+  --header "Content-Type: application/json" \
+  --header "X-Correlation-Id: 019c0000-0000-7000-8000-000000000001" \
+  --data '{"email":"alice@example.com","password":"A-secure-password1!"}'
+```
+
+The service returns `201 Created`. Email addresses are normalized before the unique constraint is applied, passwords are stored only as BCrypt hashes, and the user plus its `UserRegistered` outbox event commit atomically.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text
