@@ -52,21 +52,17 @@ class RegistrationControllerTest {
                 Instant.parse("2026-08-20T12:00:00Z")));
 
         mockMvc.perform(post("/api/v1/auth/register")
-                        .header("X-Correlation-Id", "019c0000-0000-7000-8000-000000000002")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"email":"alice@example.com","password":"A-secure-password1!"}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/api/v1/users/" + userId))
-                .andExpect(header().string(
-                        "X-Correlation-Id",
-                        "019c0000-0000-7000-8000-000000000002"))
+                .andExpect(header().exists("X-Correlation-Id"))
                 .andExpect(jsonPath("$.data.id").value(userId.toString()))
                 .andExpect(jsonPath("$.data.email").value("alice@example.com"))
                 .andExpect(jsonPath("$.data.status").value("PENDING_VERIFICATION"))
-                .andExpect(jsonPath("$.correlationId").value(
-                        "019c0000-0000-7000-8000-000000000002"));
+                .andExpect(jsonPath("$.correlationId").isNotEmpty());
     }
 
     @Test

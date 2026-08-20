@@ -50,7 +50,6 @@ Register a user:
 ```bash
 curl --request POST http://localhost:8081/api/v1/auth/register \
   --header "Content-Type: application/json" \
-  --header "X-Correlation-Id: 019c0000-0000-7000-8000-000000000001" \
   --data '{"email":"alice@example.com","password":"A-secure-password1!"}'
 ```
 
