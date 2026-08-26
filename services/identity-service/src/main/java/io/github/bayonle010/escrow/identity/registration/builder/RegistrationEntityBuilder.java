@@ -1,7 +1,5 @@
 package io.github.bayonle010.escrow.identity.registration.builder;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -10,9 +8,20 @@ import io.github.bayonle010.escrow.identity.registration.domain.UserRegistration
 import io.github.bayonle010.escrow.identity.registration.entity.OutboxEventEntity;
 import io.github.bayonle010.escrow.identity.registration.entity.OutboxStatus;
 import io.github.bayonle010.escrow.identity.registration.entity.UserEntity;
+import io.github.bayonle010.escrow.identity.registration.event.UserRegisteredPayload;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class RegistrationEntityBuilder {
+
+    private static final String EVENT_TYPE = "UserRegistered";
+    private static final int EVENT_VERSION = 1;
+
+    private final ObjectMapper objectMapper;
+
+    public RegistrationEntityBuilder(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public UserEntity buildUser(UserRegistration registration) {
         return UserEntity.builder()
@@ -28,10 +37,16 @@ public class RegistrationEntityBuilder {
         return OutboxEventEntity.builder()
                 .aggregateId(userId)
                 .aggregateType("User")
-                .eventType("UserRegistered")
-                .eventVersion(1)
+                .eventType(EVENT_TYPE)
+                .eventVersion(EVENT_VERSION)
                 .correlationId(registration.correlationId())
-                .payload(buildPayload(registration, userId))
+                .payload(objectMapper.valueToTree(new UserRegisteredPayload(
+                        EVENT_TYPE,
+                        EVENT_VERSION,
+                        registration.createdAt(),
+                        userId,
+                        registration.email(),
+                        registration.status())))
                 .occurredAt(registration.createdAt())
                 .status(OutboxStatus.PENDING)
                 .attempts(0)
@@ -39,14 +54,4 @@ public class RegistrationEntityBuilder {
                 .build();
     }
 
-    private Map<String, Object> buildPayload(UserRegistration registration, UUID userId) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("eventType", "UserRegistered");
-        payload.put("eventVersion", 1);
-        payload.put("occurredAt", registration.createdAt().toString());
-        payload.put("userId", userId.toString());
-        payload.put("email", registration.email());
-        payload.put("status", registration.status().name());
-        return payload;
-    }
 }

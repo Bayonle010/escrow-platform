@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.bayonle010.escrow.escrow.creation.domain.EscrowCreation;
 import io.github.bayonle010.escrow.escrow.creation.domain.EscrowState;
+import tools.jackson.databind.json.JsonMapper;
 
 class EscrowCreationEntityBuilderTest {
 
@@ -35,7 +36,7 @@ class EscrowCreationEntityBuilderTest {
                 Instant.parse("2026-08-20T12:00:00Z"),
                 correlationId);
 
-        var builder = new EscrowCreationEntityBuilder();
+        var builder = new EscrowCreationEntityBuilder(JsonMapper.builder().build());
         var terms = builder.buildTerms(creation, escrowId);
         var outboxEvent = builder.buildOutboxEvent(creation, escrowId);
 
@@ -44,14 +45,18 @@ class EscrowCreationEntityBuilderTest {
         assertThat(terms.getCreatedBy()).isEqualTo(buyerId);
         assertThat(outboxEvent.getAggregateId()).isEqualTo(escrowId);
         assertThat(outboxEvent.getCorrelationId()).isEqualTo(correlationId);
-        assertThat(outboxEvent.getPayload())
-                .containsEntry("eventType", "EscrowCreated")
-                .containsEntry("escrowId", escrowId.toString())
-                .containsEntry("amountMinor", 100000L)
-                .containsEntry("currency", "NGN")
-                .containsEntry("termsVersion", 1)
-                .containsEntry("state", "AWAITING_COUNTERPARTY")
-                .containsEntry("aggregateVersion", 1)
-                .doesNotContainKey("correlationId");
+        assertThat(outboxEvent.getPayload().get("eventType").asString()).isEqualTo("EscrowCreated");
+        assertThat(outboxEvent.getPayload().get("eventVersion").asInt()).isEqualTo(1);
+        assertThat(outboxEvent.getPayload().get("occurredAt").asString())
+                .isEqualTo(creation.createdAt().toString());
+        assertThat(outboxEvent.getPayload().get("escrowId").asString()).isEqualTo(escrowId.toString());
+        assertThat(outboxEvent.getPayload().get("buyerId").asString()).isEqualTo(buyerId.toString());
+        assertThat(outboxEvent.getPayload().get("sellerId").asString()).isEqualTo(sellerId.toString());
+        assertThat(outboxEvent.getPayload().get("amountMinor").asLong()).isEqualTo(100000L);
+        assertThat(outboxEvent.getPayload().get("currency").asString()).isEqualTo("NGN");
+        assertThat(outboxEvent.getPayload().get("termsVersion").asInt()).isEqualTo(1);
+        assertThat(outboxEvent.getPayload().get("state").asString()).isEqualTo("AWAITING_COUNTERPARTY");
+        assertThat(outboxEvent.getPayload().get("aggregateVersion").asInt()).isEqualTo(1);
+        assertThat(outboxEvent.getPayload().has("correlationId")).isFalse();
     }
 }
