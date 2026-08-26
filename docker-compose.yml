@@ -24,6 +24,31 @@ services:
       start_period: 20s
     stop_grace_period: 30s
 
+  escrow-service:
+    image: escrow-platform/escrow-service:0.1.0-SNAPSHOT
+    build:
+      context: .
+      dockerfile: services/escrow-service/Dockerfile
+    depends_on:
+      escrow-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8082"
+      ESCROW_DB_HOST: escrow-postgres
+      ESCROW_DB_PORT: "5432"
+      ESCROW_DB_NAME: ${ESCROW_DB_NAME:-escrow_db}
+      ESCROW_DB_USER: ${ESCROW_DB_USER:-escrow_local}
+      ESCROW_DB_PASSWORD: ${ESCROW_DB_PASSWORD:-escrow_local_password}
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 30s
+
   postgres:
     image: postgres:18.6-bookworm
     environment:
@@ -42,5 +67,24 @@ services:
       start_period: 30s
     stop_grace_period: 30s
 
+  escrow-postgres:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_DB: ${ESCROW_DB_NAME:-escrow_db}
+      POSTGRES_USER: ${ESCROW_DB_USER:-escrow_local}
+      POSTGRES_PASSWORD: ${ESCROW_DB_PASSWORD:-escrow_local_password}
+    ports:
+      - "${ESCROW_DB_PORT:-5433}:5432"
+    volumes:
+      - escrow-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+
 volumes:
   identity-postgres-data:
+  escrow-postgres-data:

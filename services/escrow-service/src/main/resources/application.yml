@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: escrow-service
+  datasource:
+    url: jdbc:postgresql://${ESCROW_DB_HOST:localhost}:${ESCROW_DB_PORT:5433}/${ESCROW_DB_NAME:escrow_db}
+    username: ${ESCROW_DB_USER:escrow_local}
+    password: ${ESCROW_DB_PASSWORD:escrow_local_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+server:
+  port: ${SERVER_PORT:8082}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+        add-additional-paths: true
+      show-details: never
+
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
