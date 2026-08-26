@@ -1,4 +1,4 @@
-package io.github.bayonle010.escrow.identity;
+package io.github.bayonle010.escrow.escrow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,23 +21,16 @@ import org.springframework.boot.test.web.server.LocalServerPort;
             "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
             "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false"
         })
-class IdentityServiceApplicationTest {
+class EscrowServiceApplicationTest {
 
     @LocalServerPort
     private int port;
 
     @Test
     void startsAndExposesHealthEndpoint() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + "/actuator/health"))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = HttpClient.newHttpClient()
-                .send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = get("/actuator/health");
 
         assertThat(response.statusCode()).isEqualTo(200);
-        
         assertThat(response.body()).contains("\"status\":\"UP\"");
     }
 
@@ -47,8 +40,8 @@ class IdentityServiceApplicationTest {
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body())
-                .contains("\"title\":\"Escrow Platform Identity API\"")
-                .contains("/api/v1/auth/register");
+                .contains("\"title\":\"Escrow Platform Escrow API\"")
+                .contains("/api/v1/escrows");
     }
 
     @Test

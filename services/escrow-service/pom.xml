@@ -11,9 +11,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>identity-service</artifactId>
-    <name>identity-service</name>
-    <description>Owns user identity, authentication, and authorization data</description>
+    <artifactId>escrow-service</artifactId>
+    <name>escrow-service</name>
+    <description>Owns escrow agreements, versioned terms, and lifecycle state</description>
 
     <dependencies>
         <dependency>
@@ -39,10 +39,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

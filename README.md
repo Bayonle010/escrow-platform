@@ -31,6 +31,65 @@ Expected response:
 {"status":"UP"}
 ```
 
+The Escrow Service health endpoint is available separately:
+
+```bash
+curl http://localhost:8082/actuator/health
+```
+
+Open Swagger UI in a browser:
+
+```text
+http://localhost:8081/swagger-ui.html
+```
+
+The Escrow Service Swagger UI is available at:
+
+```text
+http://localhost:8082/swagger-ui.html
+```
+
+The generated OpenAPI document is available at:
+
+```text
+http://localhost:8081/v3/api-docs
+http://localhost:8082/v3/api-docs
+```
+
+Swagger is enabled by default for local development. Set `SWAGGER_ENABLED=false` in environments where the documentation endpoints should not be exposed.
+
+Register a user:
+
+```bash
+curl --request POST http://localhost:8081/api/v1/auth/register \
+  --header "Content-Type: application/json" \
+  --data '{"email":"alice@example.com","password":"A-secure-password1!"}'
+```
+
+The service returns `201 Created`. Email addresses are normalized before the unique constraint is applied, passwords are stored only as BCrypt hashes, and the user plus its `UserRegistered` outbox event commit atomically.
+
+Create an escrow:
+
+```bash
+curl --request POST http://localhost:8082/api/v1/escrows \
+  --header "Content-Type: application/json" \
+  --data '{
+    "buyerId":"019c0000-0000-7000-8000-000000000001",
+    "sellerId":"019c0000-0000-7000-8000-000000000002",
+    "createdBy":"019c0000-0000-7000-8000-000000000001",
+    "amountMinor":100000,
+    "currency":"NGN",
+    "description":"Professional camera",
+    "category":"GOODS",
+    "deliveryDeadline":"2099-09-30T12:00:00Z",
+    "inspectionPeriodDays":7,
+    "releaseConditions":"Release after accepted delivery",
+    "refundConditions":"Refund if delivery misses the deadline"
+  }'
+```
+
+The service returns `201 Created`. The escrow, immutable terms version 1, and its `EscrowCreated` outbox event commit atomically.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text
@@ -42,6 +101,8 @@ Password: identity_local_password
 ```
 
 These credentials are for local development only. Override them with `IDENTITY_DB_NAME`, `IDENTITY_DB_USER`, `IDENTITY_DB_PASSWORD`, and `IDENTITY_DB_PORT` when needed.
+
+The Escrow Service database uses port `5433`, database `escrow_db`, user `escrow_local`, and password `escrow_local_password`. Override these values with the corresponding `ESCROW_DB_*` variables.
 
 Inspect the database from inside its container:
 
@@ -58,13 +119,13 @@ Stop the platform without deleting persistent volumes:
 docker compose down
 ```
 
-PostgreSQL data is stored in the `identity-postgres-data` named volume and survives an ordinary shutdown. To deliberately remove that local data and start with an empty database:
+PostgreSQL data survives an ordinary shutdown in named volumes. To deliberately remove all local database data and start empty:
 
 ```bash
 docker compose down --volumes
 ```
 
-The Compose environment currently contains the Identity Service and its PostgreSQL development database. Brokers and other services will be added when their first implemented use cases require them.
+The volumes are `identity-postgres-data` and `escrow-postgres-data`. The Compose environment currently contains the Identity and Escrow services with isolated development databases. Brokers and other services will be added when their first implemented use cases require them.
 
 ---
 

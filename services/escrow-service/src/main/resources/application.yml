@@ -1,17 +1,17 @@
 spring:
   application:
-    name: identity-service
+    name: escrow-service
   datasource:
-    url: jdbc:postgresql://${IDENTITY_DB_HOST:localhost}:${IDENTITY_DB_PORT:5432}/${IDENTITY_DB_NAME:identity_db}
-    username: ${IDENTITY_DB_USER:identity_local}
-    password: ${IDENTITY_DB_PASSWORD:identity_local_password}
+    url: jdbc:postgresql://${ESCROW_DB_HOST:localhost}:${ESCROW_DB_PORT:5433}/${ESCROW_DB_NAME:escrow_db}
+    username: ${ESCROW_DB_USER:escrow_local}
+    password: ${ESCROW_DB_PASSWORD:escrow_local_password}
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
 
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8082}
   shutdown: graceful
 
 management:
