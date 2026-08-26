@@ -22,6 +22,7 @@
     <modules>
         <module>services/identity-service</module>
         <module>services/escrow-service</module>
+        <module>services/payment-service</module>
     </modules>
 
     <properties>
