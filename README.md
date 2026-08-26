@@ -37,6 +37,12 @@ The Escrow Service health endpoint is available separately:
 curl http://localhost:8082/actuator/health
 ```
 
+The Payment Service health endpoint is available at:
+
+```bash
+curl http://localhost:8083/actuator/health
+```
+
 Open Swagger UI in a browser:
 
 ```text
@@ -49,11 +55,18 @@ The Escrow Service Swagger UI is available at:
 http://localhost:8082/swagger-ui.html
 ```
 
+The Payment Service Swagger UI is available at:
+
+```text
+http://localhost:8083/swagger-ui.html
+```
+
 The generated OpenAPI document is available at:
 
 ```text
 http://localhost:8081/v3/api-docs
 http://localhost:8082/v3/api-docs
+http://localhost:8083/v3/api-docs
 ```
 
 Swagger is enabled by default for local development. Set `SWAGGER_ENABLED=false` in environments where the documentation endpoints should not be exposed.
@@ -90,6 +103,32 @@ curl --request POST http://localhost:8082/api/v1/escrows \
 
 The service returns `201 Created`. The escrow, immutable terms version 1, and its `EscrowCreated` outbox event commit atomically.
 
+Accept the current terms as the invited counterparty, using the escrow ID returned by the create request:
+
+```bash
+curl --request POST http://localhost:8082/api/v1/escrows/{escrowId}/accept-terms \
+  --header "Content-Type: application/json" \
+  --data '{
+    "participantId":"019c0000-0000-7000-8000-000000000002",
+    "termsVersion":1
+  }'
+```
+
+The service returns `200 OK`. The acceptance record, transition to `AWAITING_FUNDING`, and `EscrowTermsAccepted` outbox event commit atomically. Until authentication is implemented, `participantId` identifies the caller and must be the participant who did not create the current terms.
+
+Initiate funding as the buyer, using a unique idempotency key and the accepted escrow ID:
+
+```bash
+curl --request POST http://localhost:8083/api/v1/escrows/{escrowId}/fund \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: 8e03978e-40d5-43e8-bc93-6894a57f9324" \
+  --data '{
+    "payerId":"019c0000-0000-7000-8000-000000000001"
+  }'
+```
+
+The service returns `202 Accepted`. It reads the authoritative amount, currency, buyer, state, and deadline from the Escrow Service, then commits a `PROCESSING` payment and `FundingInitiated` outbox event atomically. The idempotency key must be a canonical UUIDv4 or UUIDv7. Repeating the same request with the same key returns the original payment without creating another financial instruction; reusing it for a different request returns `422 Unprocessable Content`.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text
@@ -103,6 +142,8 @@ Password: identity_local_password
 These credentials are for local development only. Override them with `IDENTITY_DB_NAME`, `IDENTITY_DB_USER`, `IDENTITY_DB_PASSWORD`, and `IDENTITY_DB_PORT` when needed.
 
 The Escrow Service database uses port `5433`, database `escrow_db`, user `escrow_local`, and password `escrow_local_password`. Override these values with the corresponding `ESCROW_DB_*` variables.
+
+The Payment Service database uses port `5434`, database `payment_db`, user `payment_local`, and password `payment_local_password`. Override these values with the corresponding `PAYMENT_DB_*` variables.
 
 Inspect the database from inside its container:
 
@@ -125,7 +166,7 @@ PostgreSQL data survives an ordinary shutdown in named volumes. To deliberately 
 docker compose down --volumes
 ```
 
-The volumes are `identity-postgres-data` and `escrow-postgres-data`. The Compose environment currently contains the Identity and Escrow services with isolated development databases. Brokers and other services will be added when their first implemented use cases require them.
+The volumes are `identity-postgres-data`, `escrow-postgres-data`, and `payment-postgres-data`. The Compose environment contains the Identity, Escrow, and Payment services with isolated development databases. Brokers and other services will be added when their first implemented use cases require them.
 
 ---
 

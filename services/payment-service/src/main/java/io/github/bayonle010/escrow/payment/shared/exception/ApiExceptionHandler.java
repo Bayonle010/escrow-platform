@@ -1,4 +1,4 @@
-package io.github.bayonle010.escrow.escrow.shared.exception;
+package io.github.bayonle010.escrow.payment.shared.exception;
 
 import java.util.List;
 
@@ -6,18 +6,16 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import io.github.bayonle010.escrow.escrow.shared.CorrelationIdFilter;
-import io.github.bayonle010.escrow.escrow.shared.api.ApiError;
-import io.github.bayonle010.escrow.escrow.shared.api.ErrorCode;
+import io.github.bayonle010.escrow.payment.shared.CorrelationIdFilter;
+import io.github.bayonle010.escrow.payment.shared.api.ApiError;
+import io.github.bayonle010.escrow.payment.shared.api.ErrorCode;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -31,82 +29,56 @@ public class ApiExceptionHandler {
         List<ApiError.FieldViolation> details = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> new ApiError.FieldViolation(error.getField(), error.getDefaultMessage()))
                 .toList();
-        ApiError error = new ApiError(
+        return ResponseEntity.badRequest().body(new ApiError(
                 ErrorCode.REQUEST_VALIDATION_FAILED,
                 "The request contains invalid fields.",
                 correlationId(request),
-                details);
-        return ResponseEntity.badRequest().body(error);
+                details));
     }
 
-    @ExceptionHandler(InvalidEscrowException.class)
-    ResponseEntity<ApiError> handleInvalidEscrow(
-            InvalidEscrowException exception,
+    @ExceptionHandler(PaymentApiException.class)
+    ResponseEntity<ApiError> handlePaymentApiException(
+            PaymentApiException exception,
             HttpServletRequest request) {
-        ApiError error = new ApiError(
+        List<ApiError.FieldViolation> details = exception.getField() == null
+                ? List.of()
+                : List.of(new ApiError.FieldViolation(exception.getField(), exception.getMessage()));
+        return ResponseEntity.status(exception.getStatus()).body(new ApiError(
                 exception.getErrorCode(),
                 exception.getMessage(),
                 correlationId(request),
-                List.of(new ApiError.FieldViolation(exception.getField(), exception.getMessage())));
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
-    }
-
-    @ExceptionHandler(EscrowNotFoundException.class)
-    ResponseEntity<ApiError> handleEscrowNotFound(
-            EscrowNotFoundException exception,
-            HttpServletRequest request) {
-        ApiError error = new ApiError(
-                ErrorCode.ESCROW_NOT_FOUND,
-                exception.getMessage(),
-                correlationId(request),
-                List.of());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    ResponseEntity<ApiError> handleConcurrentModification(HttpServletRequest request) {
-        ApiError error = new ApiError(
-                ErrorCode.ESCROW_CONCURRENT_MODIFICATION,
-                "The escrow changed while this request was being processed. Retry with the latest state.",
-                correlationId(request),
-                List.of());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+                details));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiError> handleTypeMismatch(
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request) {
-        ApiError error = new ApiError(
+        return ResponseEntity.badRequest().body(new ApiError(
                 ErrorCode.REQUEST_VALIDATION_FAILED,
                 "The request contains invalid fields.",
                 correlationId(request),
-                List.of(new ApiError.FieldViolation(
-                        exception.getName(),
-                        "The value has an invalid format.")));
-        return ResponseEntity.badRequest().body(error);
+                List.of(new ApiError.FieldViolation(exception.getName(), "The value has an invalid format."))));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ApiError> handleUnreadableBody(HttpServletRequest request) {
-        ApiError error = new ApiError(
+        return ResponseEntity.badRequest().body(new ApiError(
                 ErrorCode.REQUEST_BODY_INVALID,
                 "The request body is missing or malformed.",
                 correlationId(request),
-                List.of());
-        return ResponseEntity.badRequest().body(error);
+                List.of()));
     }
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> handleUnexpected(Exception exception, HttpServletRequest request) {
         String correlationId = correlationId(request);
         LOGGER.error("Unhandled request failure correlationId={}", correlationId, exception);
-        ApiError error = new ApiError(
+        return ResponseEntity.internalServerError().body(new ApiError(
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 "The request could not be completed.",
                 correlationId,
-                List.of());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+                List.of()));
     }
 
     private String correlationId(HttpServletRequest request) {

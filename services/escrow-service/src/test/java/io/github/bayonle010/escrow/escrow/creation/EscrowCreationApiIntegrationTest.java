@@ -50,6 +50,7 @@ class EscrowCreationApiIntegrationTest {
     @BeforeEach
     void clearDatabase() {
         jdbcTemplate.update("DELETE FROM outbox_events");
+        jdbcTemplate.update("DELETE FROM escrow_terms_acceptances");
         jdbcTemplate.update("DELETE FROM escrow_terms");
         jdbcTemplate.update("DELETE FROM escrows");
     }
