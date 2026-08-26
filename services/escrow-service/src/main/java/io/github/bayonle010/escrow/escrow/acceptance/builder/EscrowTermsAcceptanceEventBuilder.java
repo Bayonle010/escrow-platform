@@ -1,18 +1,27 @@
 package io.github.bayonle010.escrow.escrow.acceptance.builder;
 
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
+import io.github.bayonle010.escrow.escrow.acceptance.event.EscrowTermsAcceptedPayload;
 import io.github.bayonle010.escrow.escrow.creation.domain.EscrowState;
 import io.github.bayonle010.escrow.escrow.creation.entity.OutboxEventEntity;
 import io.github.bayonle010.escrow.escrow.creation.entity.OutboxStatus;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class EscrowTermsAcceptanceEventBuilder {
+
+    private static final String EVENT_TYPE = "EscrowTermsAccepted";
+    private static final int EVENT_VERSION = 1;
+
+    private final ObjectMapper objectMapper;
+
+    public EscrowTermsAcceptanceEventBuilder(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public OutboxEventEntity build(
             UUID escrowId,
@@ -24,15 +33,18 @@ public class EscrowTermsAcceptanceEventBuilder {
         return OutboxEventEntity.builder()
                 .aggregateId(escrowId)
                 .aggregateType("Escrow")
-                .eventType("EscrowTermsAccepted")
-                .eventVersion(1)
+                .eventType(EVENT_TYPE)
+                .eventVersion(EVENT_VERSION)
                 .correlationId(correlationId)
-                .payload(payload(
+                .payload(objectMapper.valueToTree(new EscrowTermsAcceptedPayload(
+                        EVENT_TYPE,
+                        EVENT_VERSION,
+                        acceptedAt,
                         escrowId,
                         participantId,
                         termsVersion,
-                        aggregateVersion,
-                        acceptedAt))
+                        EscrowState.AWAITING_FUNDING,
+                        aggregateVersion)))
                 .occurredAt(acceptedAt)
                 .status(OutboxStatus.PENDING)
                 .attempts(0)
@@ -40,21 +52,4 @@ public class EscrowTermsAcceptanceEventBuilder {
                 .build();
     }
 
-    private Map<String, Object> payload(
-            UUID escrowId,
-            UUID participantId,
-            int termsVersion,
-            long aggregateVersion,
-            Instant acceptedAt) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("eventType", "EscrowTermsAccepted");
-        payload.put("eventVersion", 1);
-        payload.put("occurredAt", acceptedAt.toString());
-        payload.put("escrowId", escrowId.toString());
-        payload.put("participantId", participantId.toString());
-        payload.put("termsVersion", termsVersion);
-        payload.put("state", EscrowState.AWAITING_FUNDING.name());
-        payload.put("aggregateVersion", aggregateVersion);
-        return payload;
-    }
 }

@@ -1,7 +1,6 @@
 package io.github.bayonle010.escrow.identity.registration.entity;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -22,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 @Entity
 @Table(name = "outbox_events")
@@ -54,7 +54,7 @@ public class OutboxEventEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", nullable = false, updatable = false, columnDefinition = "jsonb")
-    private Map<String, Object> payload;
+    private JsonNode payload;
 
     @Column(name = "occurred_at", nullable = false, updatable = false)
     private Instant occurredAt;

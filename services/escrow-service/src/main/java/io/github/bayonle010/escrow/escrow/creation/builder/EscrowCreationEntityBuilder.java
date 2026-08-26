@@ -1,7 +1,5 @@
 package io.github.bayonle010.escrow.escrow.creation.builder;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -11,9 +9,21 @@ import io.github.bayonle010.escrow.escrow.creation.entity.EscrowEntity;
 import io.github.bayonle010.escrow.escrow.creation.entity.EscrowTermsEntity;
 import io.github.bayonle010.escrow.escrow.creation.entity.OutboxEventEntity;
 import io.github.bayonle010.escrow.escrow.creation.entity.OutboxStatus;
+import io.github.bayonle010.escrow.escrow.creation.event.EscrowCreatedPayload;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class EscrowCreationEntityBuilder {
+
+    private static final String EVENT_TYPE = "EscrowCreated";
+    private static final int EVENT_VERSION = 1;
+    private static final int INITIAL_AGGREGATE_VERSION = 1;
+
+    private final ObjectMapper objectMapper;
+
+    public EscrowCreationEntityBuilder(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public EscrowEntity buildEscrow(EscrowCreation creation) {
         return EscrowEntity.builder()
@@ -51,10 +61,21 @@ public class EscrowCreationEntityBuilder {
         return OutboxEventEntity.builder()
                 .aggregateId(escrowId)
                 .aggregateType("Escrow")
-                .eventType("EscrowCreated")
-                .eventVersion(1)
+                .eventType(EVENT_TYPE)
+                .eventVersion(EVENT_VERSION)
                 .correlationId(creation.correlationId())
-                .payload(buildPayload(creation, escrowId))
+                .payload(objectMapper.valueToTree(new EscrowCreatedPayload(
+                        EVENT_TYPE,
+                        EVENT_VERSION,
+                        creation.createdAt(),
+                        escrowId,
+                        creation.buyerId(),
+                        creation.sellerId(),
+                        creation.amountMinor(),
+                        creation.currency(),
+                        creation.termsVersion(),
+                        creation.state(),
+                        INITIAL_AGGREGATE_VERSION)))
                 .occurredAt(creation.createdAt())
                 .status(OutboxStatus.PENDING)
                 .attempts(0)
@@ -62,19 +83,4 @@ public class EscrowCreationEntityBuilder {
                 .build();
     }
 
-    private Map<String, Object> buildPayload(EscrowCreation creation, UUID escrowId) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("eventType", "EscrowCreated");
-        payload.put("eventVersion", 1);
-        payload.put("occurredAt", creation.createdAt().toString());
-        payload.put("escrowId", escrowId.toString());
-        payload.put("buyerId", creation.buyerId().toString());
-        payload.put("sellerId", creation.sellerId().toString());
-        payload.put("amountMinor", creation.amountMinor());
-        payload.put("currency", creation.currency());
-        payload.put("termsVersion", creation.termsVersion());
-        payload.put("state", creation.state().name());
-        payload.put("aggregateVersion", 1);
-        return payload;
-    }
 }
