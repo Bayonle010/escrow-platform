@@ -90,6 +90,19 @@ curl --request POST http://localhost:8082/api/v1/escrows \
 
 The service returns `201 Created`. The escrow, immutable terms version 1, and its `EscrowCreated` outbox event commit atomically.
 
+Accept the current terms as the invited counterparty, using the escrow ID returned by the create request:
+
+```bash
+curl --request POST http://localhost:8082/api/v1/escrows/{escrowId}/accept-terms \
+  --header "Content-Type: application/json" \
+  --data '{
+    "participantId":"019c0000-0000-7000-8000-000000000002",
+    "termsVersion":1
+  }'
+```
+
+The service returns `200 OK`. The acceptance record, transition to `AWAITING_FUNDING`, and `EscrowTermsAccepted` outbox event commit atomically. Until authentication is implemented, `participantId` identifies the caller and must be the participant who did not create the current terms.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text

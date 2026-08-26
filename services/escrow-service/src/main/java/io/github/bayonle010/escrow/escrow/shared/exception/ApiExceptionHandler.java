@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import io.github.bayonle010.escrow.escrow.shared.CorrelationIdFilter;
 import io.github.bayonle010.escrow.escrow.shared.api.ApiError;
@@ -47,6 +49,42 @@ public class ApiExceptionHandler {
                 correlationId(request),
                 List.of(new ApiError.FieldViolation(exception.getField(), exception.getMessage())));
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(EscrowNotFoundException.class)
+    ResponseEntity<ApiError> handleEscrowNotFound(
+            EscrowNotFoundException exception,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                ErrorCode.ESCROW_NOT_FOUND,
+                exception.getMessage(),
+                correlationId(request),
+                List.of());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiError> handleConcurrentModification(HttpServletRequest request) {
+        ApiError error = new ApiError(
+                ErrorCode.ESCROW_CONCURRENT_MODIFICATION,
+                "The escrow changed while this request was being processed. Retry with the latest state.",
+                correlationId(request),
+                List.of());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ApiError> handleTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                ErrorCode.REQUEST_VALIDATION_FAILED,
+                "The request contains invalid fields.",
+                correlationId(request),
+                List.of(new ApiError.FieldViolation(
+                        exception.getName(),
+                        "The value has an invalid format.")));
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

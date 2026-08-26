@@ -70,4 +70,9 @@ public class EscrowEntity {
     @Version
     @Column(name = "version", nullable = false)
     private long version;
+
+    public void acceptTerms(Instant acceptedAt) {
+        state = EscrowState.AWAITING_FUNDING;
+        updatedAt = acceptedAt;
+    }
 }
