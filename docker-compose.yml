@@ -67,6 +67,7 @@ services:
       PAYMENT_DB_USER: ${PAYMENT_DB_USER:-payment_local}
       PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD:-payment_local_password}
       ESCROW_SERVICE_BASE_URL: http://escrow-service:8082
+      SIMULATED_PROVIDER_CALLBACK_SECRET: ${SIMULATED_PROVIDER_CALLBACK_SECRET:-local-development-secret}
     ports:
       - "8083:8083"
     healthcheck:

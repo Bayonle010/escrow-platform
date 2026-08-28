@@ -129,6 +129,19 @@ curl --request POST http://localhost:8083/api/v1/escrows/{escrowId}/fund \
 
 The service returns `202 Accepted`. It reads the authoritative amount, currency, buyer, state, and deadline from the Escrow Service, then commits a `PROCESSING` payment and `FundingInitiated` outbox event atomically. The idempotency key must be a canonical UUIDv4 or UUIDv7. Repeating the same request with the same key returns the original payment without creating another financial instruction; reusing it for a different request returns `422 Unprocessable Content`.
 
+Confirm the payment through the authenticated local provider simulator, using the payment ID returned by the funding request:
+
+```bash
+curl --request POST http://localhost:8083/api/v1/providers/simulated/payments/{paymentId}/confirm \
+  --header "Content-Type: application/json" \
+  --header "X-Simulated-Provider-Secret: local-development-secret" \
+  --data '{
+    "providerReference":"simulated-transaction-1001"
+  }'
+```
+
+The service returns `200 OK` and atomically changes the payment from `PROCESSING` to `SUCCEEDED` while creating one `PaymentSucceeded` outbox event. Replaying the same provider reference is harmless and returns the original result with `replayed: true`. A provider reference cannot be assigned to more than one payment. Set `SIMULATED_PROVIDER_CALLBACK_SECRET` to override the local-only callback secret; a real provider adapter must verify that provider's signed callback instead.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text

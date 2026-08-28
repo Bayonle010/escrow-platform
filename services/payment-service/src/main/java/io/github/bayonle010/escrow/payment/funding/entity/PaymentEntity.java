@@ -73,4 +73,10 @@ public class PaymentEntity {
     @Version
     @Column(name = "version", nullable = false)
     private long version;
+
+    public void succeed(String providerReference, Instant succeededAt) {
+        this.providerReference = providerReference;
+        this.status = PaymentStatus.SUCCEEDED;
+        this.updatedAt = succeededAt;
+    }
 }
