@@ -15,7 +15,7 @@ import tools.jackson.databind.json.JsonMapper;
 class FundingInitiatedEventBuilderTest {
 
     @Test
-    void buildsTheVersionedFundingEvent() {
+    void buildsTheVersionedFundingEvent() throws Exception {
         UUID paymentId = UUID.fromString("019c0000-0000-7000-8000-000000000030");
         UUID escrowId = UUID.fromString("019c0000-0000-7000-8000-000000000020");
         UUID buyerId = UUID.fromString("019c0000-0000-7000-8000-000000000001");
@@ -32,21 +32,23 @@ class FundingInitiatedEventBuilderTest {
                 .createdAt(now)
                 .build();
 
-        var event = new FundingInitiatedEventBuilder(JsonMapper.builder().build())
+        var jsonMapper = JsonMapper.builder().build();
+        var event = new FundingInitiatedEventBuilder(jsonMapper)
                 .build(payment, correlationId);
+        var payload = jsonMapper.readTree(event.getPayload());
 
         assertThat(event.getAggregateId()).isEqualTo(paymentId);
         assertThat(event.getEventType()).isEqualTo("FundingInitiated");
         assertThat(event.getEventVersion()).isEqualTo(1);
         assertThat(event.getStatus()).isEqualTo(OutboxStatus.PENDING);
-        assertThat(event.getPayload().get("eventType").asString()).isEqualTo("FundingInitiated");
-        assertThat(event.getPayload().get("eventVersion").asInt()).isEqualTo(1);
-        assertThat(event.getPayload().get("paymentId").asString()).isEqualTo(paymentId.toString());
-        assertThat(event.getPayload().get("escrowId").asString()).isEqualTo(escrowId.toString());
-        assertThat(event.getPayload().get("payerId").asString()).isEqualTo(buyerId.toString());
-        assertThat(event.getPayload().get("amountMinor").asLong()).isEqualTo(100000L);
-        assertThat(event.getPayload().get("status").asString()).isEqualTo("PROCESSING");
-        assertThat(event.getPayload().get("occurredAt").asString()).isEqualTo(now.toString());
-        assertThat(event.getPayload().get("correlationId").asString()).isEqualTo(correlationId.toString());
+        assertThat(payload.get("eventType").asString()).isEqualTo("FundingInitiated");
+        assertThat(payload.get("eventVersion").asInt()).isEqualTo(1);
+        assertThat(payload.get("paymentId").asString()).isEqualTo(paymentId.toString());
+        assertThat(payload.get("escrowId").asString()).isEqualTo(escrowId.toString());
+        assertThat(payload.get("payerId").asString()).isEqualTo(buyerId.toString());
+        assertThat(payload.get("amountMinor").asLong()).isEqualTo(100000L);
+        assertThat(payload.get("status").asString()).isEqualTo("PROCESSING");
+        assertThat(payload.get("occurredAt").asString()).isEqualTo(now.toString());
+        assertThat(payload.get("correlationId").asString()).isEqualTo(correlationId.toString());
     }
 }

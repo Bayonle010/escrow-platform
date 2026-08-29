@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: ledger-service
+  datasource:
+    url: jdbc:postgresql://${LEDGER_DB_HOST:localhost}:${LEDGER_DB_PORT:5435}/${LEDGER_DB_NAME:ledger_db}
+    username: ${LEDGER_DB_USER:ledger_local}
+    password: ${LEDGER_DB_PASSWORD:ledger_local_password}
+
+server:
+  port: ${SERVER_PORT:8084}
+  shutdown: graceful
+
+ledger:
+    internal-event-secret: ${LEDGER_INTERNAL_EVENT_SECRET:local-development-secret}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+        add-additional-paths: true
+      show-details: never
+
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true

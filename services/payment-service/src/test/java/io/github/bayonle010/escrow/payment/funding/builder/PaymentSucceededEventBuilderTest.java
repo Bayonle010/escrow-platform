@@ -15,7 +15,7 @@ import tools.jackson.databind.json.JsonMapper;
 class PaymentSucceededEventBuilderTest {
 
     @Test
-    void buildsTheStablePaymentSucceededPayload() {
+    void buildsTheStablePaymentSucceededPayload() throws Exception {
         UUID paymentId = UUID.fromString("019c0000-0000-7000-8000-000000000030");
         UUID escrowId = UUID.fromString("019c0000-0000-7000-8000-000000000020");
         UUID payerId = UUID.fromString("019c0000-0000-7000-8000-000000000001");
@@ -34,19 +34,21 @@ class PaymentSucceededEventBuilderTest {
                 .version(1)
                 .build();
 
-        var event = new PaymentSucceededEventBuilder(JsonMapper.builder().build())
+        var jsonMapper = JsonMapper.builder().build();
+        var event = new PaymentSucceededEventBuilder(jsonMapper)
                 .build(payment, correlationId);
+        var payload = jsonMapper.readTree(event.getPayload());
 
         assertThat(event.getEventType()).isEqualTo("PaymentSucceeded");
         assertThat(event.getStatus()).isEqualTo(OutboxStatus.PENDING);
         assertThat(event.getAggregateId()).isEqualTo(paymentId);
-        assertThat(event.getPayload().get("eventVersion").asInt()).isEqualTo(1);
-        assertThat(event.getPayload().get("escrowId").asString()).isEqualTo(escrowId.toString());
-        assertThat(event.getPayload().get("providerReference").asString())
+        assertThat(payload.get("eventVersion").asInt()).isEqualTo(1);
+        assertThat(payload.get("escrowId").asString()).isEqualTo(escrowId.toString());
+        assertThat(payload.get("providerReference").asString())
                 .isEqualTo("simulated-transaction-1001");
-        assertThat(event.getPayload().get("status").asString()).isEqualTo("SUCCEEDED");
-        assertThat(event.getPayload().get("aggregateVersion").asLong()).isEqualTo(1);
-        assertThat(event.getPayload().get("correlationId").asString())
+        assertThat(payload.get("status").asString()).isEqualTo("SUCCEEDED");
+        assertThat(payload.get("aggregateVersion").asLong()).isEqualTo(1);
+        assertThat(payload.get("correlationId").asString())
                 .isEqualTo(correlationId.toString());
     }
 }

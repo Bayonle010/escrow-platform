@@ -78,6 +78,32 @@ services:
       start_period: 20s
     stop_grace_period: 30s
 
+  ledger-service:
+    image: escrow-platform/ledger-service:0.1.0-SNAPSHOT
+    build:
+      context: .
+      dockerfile: services/ledger-service/Dockerfile
+    depends_on:
+      ledger-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8084"
+      LEDGER_DB_HOST: ledger-postgres
+      LEDGER_DB_PORT: "5432"
+      LEDGER_DB_NAME: ${LEDGER_DB_NAME:-ledger_db}
+      LEDGER_DB_USER: ${LEDGER_DB_USER:-ledger_local}
+      LEDGER_DB_PASSWORD: ${LEDGER_DB_PASSWORD:-ledger_local_password}
+      LEDGER_INTERNAL_EVENT_SECRET: ${LEDGER_INTERNAL_EVENT_SECRET:-local-development-secret}
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 30s
+
   postgres:
     image: postgres:18.6-bookworm
     environment:
@@ -132,7 +158,26 @@ services:
       start_period: 30s
     stop_grace_period: 30s
 
+  ledger-postgres:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_DB: ${LEDGER_DB_NAME:-ledger_db}
+      POSTGRES_USER: ${LEDGER_DB_USER:-ledger_local}
+      POSTGRES_PASSWORD: ${LEDGER_DB_PASSWORD:-ledger_local_password}
+    ports:
+      - "${LEDGER_DB_PORT:-5435}:5432"
+    volumes:
+      - ledger-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+
 volumes:
   identity-postgres-data:
   escrow-postgres-data:
   payment-postgres-data:
+  ledger-postgres-data:
