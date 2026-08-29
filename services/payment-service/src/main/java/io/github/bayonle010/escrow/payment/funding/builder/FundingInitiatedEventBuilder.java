@@ -44,7 +44,7 @@ public class FundingInitiatedEventBuilder {
                 .eventType(EVENT_TYPE)
                 .eventVersion(EVENT_VERSION)
                 .correlationId(correlationId)
-                .payload(objectMapper.valueToTree(payload))
+                .payload(objectMapper.valueToTree(payload).toString())
                 .occurredAt(occurredAt)
                 .status(OutboxStatus.PENDING)
                 .attempts(0)

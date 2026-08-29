@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import tools.jackson.databind.JsonNode;
 
 @Entity
 @Table(name = "outbox_events")
@@ -54,7 +53,7 @@ public class OutboxEventEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", nullable = false, updatable = false, columnDefinition = "jsonb")
-    private JsonNode payload;
+    private String payload;
 
     @Column(name = "occurred_at", nullable = false, updatable = false)
     private Instant occurredAt;

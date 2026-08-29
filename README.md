@@ -4,7 +4,7 @@ A production-oriented, large-scale escrow platform built with **Java and the Spr
 
 The platform connects buyers and sellers through a trusted escrow process: funds are secured until agreed transaction conditions are satisfied, after which they are released, refunded, or resolved through a dispute process.
 
-> **Status:** Architecture complete enough for initial implementation. Development is starting with the first vertical slice.
+> **Status:** The first distributed funding vertical slice is under active implementation.
 
 ---
 
@@ -43,6 +43,12 @@ The Payment Service health endpoint is available at:
 curl http://localhost:8083/actuator/health
 ```
 
+The Ledger Service health endpoint is available at:
+
+```bash
+curl http://localhost:8084/actuator/health
+```
+
 Open Swagger UI in a browser:
 
 ```text
@@ -61,12 +67,19 @@ The Payment Service Swagger UI is available at:
 http://localhost:8083/swagger-ui.html
 ```
 
+The Ledger Service Swagger UI is available at:
+
+```text
+http://localhost:8084/swagger-ui.html
+```
+
 The generated OpenAPI document is available at:
 
 ```text
 http://localhost:8081/v3/api-docs
 http://localhost:8082/v3/api-docs
 http://localhost:8083/v3/api-docs
+http://localhost:8084/v3/api-docs
 ```
 
 Swagger is enabled by default for local development. Set `SWAGGER_ENABLED=false` in environments where the documentation endpoints should not be exposed.
@@ -142,6 +155,30 @@ curl --request POST http://localhost:8083/api/v1/providers/simulated/payments/{p
 
 The service returns `200 OK` and atomically changes the payment from `PROCESSING` to `SUCCEEDED` while creating one `PaymentSucceeded` outbox event. Replaying the same provider reference is harmless and returns the original result with `replayed: true`. A provider reference cannot be assigned to more than one payment. Set `SIMULATED_PROVIDER_CALLBACK_SECRET` to override the local-only callback secret; a real provider adapter must verify that provider's signed callback instead.
 
+Until Kafka delivery is introduced, send the resulting `PaymentSucceeded` event to the authenticated Ledger Service boundary. Use the event ID, occurrence time, correlation ID, and payload fields stored in the Payment Service `outbox_events` row:
+
+```bash
+curl --request POST http://localhost:8084/internal/v1/ledger/events/payment-succeeded \
+  --header "Content-Type: application/json" \
+  --header "X-Internal-Event-Secret: local-development-secret" \
+  --data '{
+    "eventId":"{paymentSucceededEventId}",
+    "eventVersion":1,
+    "occurredAt":"{paymentSucceededOccurredAt}",
+    "paymentId":"{paymentId}",
+    "escrowId":"{escrowId}",
+    "payerId":"{payerId}",
+    "amountMinor":100000,
+    "currency":"NGN",
+    "provider":"SIMULATED",
+    "providerReference":"simulated-transaction-1001",
+    "aggregateVersion":1,
+    "correlationId":"{paymentSucceededCorrelationId}"
+  }'
+```
+
+The Ledger Service returns `200 OK` and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. Replays return the original journal with `replayed: true`; conflicting terms for the same payment return `409 Conflict`. Set `LEDGER_INTERNAL_EVENT_SECRET` to override the local-development secret. Kafka will replace this temporary HTTP delivery boundary in the next messaging phase.
+
 PostgreSQL starts with these local-development defaults:
 
 ```text
@@ -157,6 +194,24 @@ These credentials are for local development only. Override them with `IDENTITY_D
 The Escrow Service database uses port `5433`, database `escrow_db`, user `escrow_local`, and password `escrow_local_password`. Override these values with the corresponding `ESCROW_DB_*` variables.
 
 The Payment Service database uses port `5434`, database `payment_db`, user `payment_local`, and password `payment_local_password`. Override these values with the corresponding `PAYMENT_DB_*` variables.
+
+The Ledger Service database uses port `5435`, database `ledger_db`, user `ledger_local`, and password `ledger_local_password`. Override these values with the corresponding `LEDGER_DB_*` variables.
+
+Open the Ledger database in `psql`:
+
+```bash
+docker compose exec ledger-postgres psql \
+  --username ledger_local \
+  --dbname ledger_db
+```
+
+Inside `psql`, use `\x auto` for readable wide rows and inspect the posted journals with:
+
+```sql
+SELECT * FROM ledger_journals;
+SELECT * FROM ledger_entries ORDER BY journal_id, sequence;
+SELECT * FROM ledger_account_balances;
+```
 
 Inspect the database from inside its container:
 
@@ -179,7 +234,7 @@ PostgreSQL data survives an ordinary shutdown in named volumes. To deliberately 
 docker compose down --volumes
 ```
 
-The volumes are `identity-postgres-data`, `escrow-postgres-data`, and `payment-postgres-data`. The Compose environment contains the Identity, Escrow, and Payment services with isolated development databases. Brokers and other services will be added when their first implemented use cases require them.
+The volumes are `identity-postgres-data`, `escrow-postgres-data`, `payment-postgres-data`, and `ledger-postgres-data`. The Compose environment contains the Identity, Escrow, Payment, and Ledger services with isolated development databases. Brokers and other services will be added when their first implemented use cases require them.
 
 ---
 
@@ -934,23 +989,31 @@ The remaining architecture documents provide deeper implementation decisions.
 * Reliability and observability strategy
 * Testing strategy
 * First vertical slice design
+* Identity registration flow
+* Escrow creation and terms-acceptance flows
+* Idempotent payment initiation and simulated provider confirmation
+
+### In Progress
+
+* Double-entry Ledger Service funding journal
+* Ledger inbox deduplication and transactional outbox
 
 ### Next
 
 ```text
-Create Java/Spring service structure
+Connect service outboxes to Kafka
         ↓
-Create local infrastructure
+Publish PaymentSucceeded to payment.events.v1
         ↓
-Build Identity Service
+Consume PaymentSucceeded in Ledger Service
         ↓
-Build Escrow Service
+Publish EscrowFundingSecured to ledger.events.v1
         ↓
-Build Payment Service
+Consume EscrowFundingSecured in Escrow Service
         ↓
-Build Ledger Service
+Transition escrow to FUNDED exactly once
         ↓
-Connect the funding workflow with Kafka
+Run failure and load tests
 ```
 
 ---
