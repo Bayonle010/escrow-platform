@@ -39,7 +39,8 @@ class LedgerServiceApplicationTest {
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body())
                 .contains("\"title\":\"Escrow Platform Ledger API\"")
-                .contains("/internal/v1/ledger/events/payment-succeeded");
+                .contains("/internal/v1/ledger/accounts/{accountId}/balance")
+                .doesNotContain("/internal/v1/ledger/events/payment-succeeded");
     }
 
     @Test

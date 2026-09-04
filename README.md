@@ -196,7 +196,7 @@ The service returns `200 OK` and atomically changes the payment from `PROCESSING
 
 Delivery to Ledger is automatic. The Payment Service polling publisher locks due outbox rows, publishes them to `payment.events.v1` with `escrowId` as the partition key, and marks each row `PUBLISHED` only after Kafka acknowledges it. Broker failures leave the row `PENDING` with exponential retry backoff.
 
-The Ledger Service consumes `PaymentSucceeded`, validates the event envelope, and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. If Kafka redelivers an event, the consumer inbox makes the financial effect idempotent. The temporary authenticated HTTP boundary remains available for diagnostics during this transition.
+The Ledger Service consumes `PaymentSucceeded`, validates the event envelope, and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. If Kafka redelivers an event, the consumer inbox makes the financial effect idempotent.
 
 See [Payment-to-Ledger Kafka implementation](docs/implementation/payment-to-ledger-kafka.md) for the transaction boundaries, retry behavior, configuration, and tests.
 
