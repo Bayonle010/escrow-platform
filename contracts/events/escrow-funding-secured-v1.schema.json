@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Bayonle010/escrow-platform/contracts/events/escrow-funding-secured-v1.schema.json",
+  "title": "EscrowFundingSecured v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "aggregateType",
+    "aggregateId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "correlationId",
+    "causationId",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "aggregateType": { "const": "LedgerJournal" },
+    "aggregateId": { "type": "string", "format": "uuid" },
+    "eventType": { "const": "EscrowFundingSecured" },
+    "eventVersion": { "const": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "correlationId": { "type": "string", "format": "uuid" },
+    "causationId": { "type": "string", "format": "uuid" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventType",
+        "eventVersion",
+        "occurredAt",
+        "journalId",
+        "paymentId",
+        "escrowId",
+        "amountMinor",
+        "currency",
+        "correlationId",
+        "causationId"
+      ],
+      "properties": {
+        "eventType": { "const": "EscrowFundingSecured" },
+        "eventVersion": { "const": 1 },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "journalId": { "type": "string", "format": "uuid" },
+        "paymentId": { "type": "string", "format": "uuid" },
+        "escrowId": { "type": "string", "format": "uuid" },
+        "amountMinor": { "type": "integer", "minimum": 1 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "correlationId": { "type": "string", "format": "uuid" },
+        "causationId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

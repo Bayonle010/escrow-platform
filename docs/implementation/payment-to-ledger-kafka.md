@@ -182,13 +182,15 @@ Run everything from the repository root:
 Docker must be available for the Testcontainers tests. They skip automatically
 when Docker is unavailable.
 
-## 10. Next Increment
+## 10. Following Increment
 
-The next messaging increment is symmetrical:
+Ledger outbox publication is implemented separately. The remaining messaging
+increment is:
 
 ```text
-Ledger outbox
-  -> publish EscrowFundingSecured to ledger.events.v1
-  -> Escrow Service consumes it with an inbox
+ledger.events.v1
+  -> Escrow Service consumes EscrowFundingSecured with an inbox
   -> transition the escrow to FUNDED exactly once
 ```
+
+See [Ledger outbox Kafka implementation](ledger-outbox-kafka.md).

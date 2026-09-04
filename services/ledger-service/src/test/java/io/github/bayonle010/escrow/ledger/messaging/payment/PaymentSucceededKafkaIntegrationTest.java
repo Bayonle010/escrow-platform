@@ -32,6 +32,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(properties = {
     "ledger.messaging.consumer-enabled=true",
+    "ledger.outbox.publisher.enabled=false",
     "spring.kafka.listener.concurrency=1"
 })
 class PaymentSucceededKafkaIntegrationTest {

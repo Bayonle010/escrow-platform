@@ -25,7 +25,8 @@ class EscrowFundingSecuredEventBuilderTest {
         UUID escrowId = UUID.fromString("019c0000-0000-7000-8000-000000000020");
         UUID payerId = UUID.fromString("019c0000-0000-7000-8000-000000000001");
         UUID correlationId = UUID.fromString("019c0000-0000-7000-8000-000000000010");
-        Instant securedAt = Instant.parse("2026-08-28T00:00:00Z");
+        Instant securedAt = Instant.parse("2026-08-28T00:00:00.123456789Z");
+        Instant persistedEventTime = Instant.parse("2026-08-28T00:00:00.123456Z");
         UuidV7Generator uuidGenerator = mock(UuidV7Generator.class);
         when(uuidGenerator.generate()).thenReturn(outboxEventId);
         var builder = new EscrowFundingSecuredEventBuilder(
@@ -63,6 +64,9 @@ class EscrowFundingSecuredEventBuilderTest {
         assertThat(event.eventType()).isEqualTo("EscrowFundingSecured");
         assertThat(event.partitionKey()).isEqualTo(escrowId);
         assertThat(event.causationId()).isEqualTo(causeEventId);
+        assertThat(event.occurredAt()).isEqualTo(persistedEventTime);
+        assertThat(event.payload().get("occurredAt").asString())
+                .isEqualTo(persistedEventTime.toString());
         assertThat(event.payload().get("journalId").asString()).isEqualTo(journalId.toString());
         assertThat(event.payload().get("amountMinor").asLong()).isEqualTo(100000);
         assertThat(event.payload().has("status")).isFalse();

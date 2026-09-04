@@ -1,6 +1,7 @@
 package io.github.bayonle010.escrow.ledger.funding.builder;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Component;
 
@@ -31,10 +32,11 @@ public class EscrowFundingSecuredEventBuilder {
             PostedFunding funding,
             PaymentSucceededEvent cause,
             Instant occurredAt) {
+        Instant eventTime = occurredAt.truncatedTo(ChronoUnit.MICROS);
         var payload = new EscrowFundingSecuredPayload(
                 EVENT_TYPE,
                 EVENT_VERSION,
-                occurredAt,
+                eventTime,
                 funding.journalId(),
                 funding.paymentId(),
                 funding.escrowId(),
@@ -52,6 +54,6 @@ public class EscrowFundingSecuredEventBuilder {
                 cause.correlationId(),
                 cause.eventId(),
                 objectMapper.valueToTree(payload),
-                occurredAt);
+                eventTime);
     }
 }

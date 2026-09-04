@@ -7,6 +7,12 @@ spring:
     password: ${LEDGER_DB_PASSWORD:ledger_local_password}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
     consumer:
       group-id: ${LEDGER_PAYMENT_CONSUMER_GROUP:ledger-payment-succeeded-v1}
       enable-auto-commit: false
@@ -27,6 +33,15 @@ ledger:
     consumer-enabled: ${LEDGER_MESSAGING_CONSUMER_ENABLED:true}
     topics:
       payment-events: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}
+      events: ${LEDGER_EVENTS_TOPIC:ledger.events.v1}
+  outbox:
+    publisher:
+      enabled: ${LEDGER_OUTBOX_PUBLISHER_ENABLED:true}
+      poll-interval: ${LEDGER_OUTBOX_POLL_INTERVAL:500ms}
+      batch-size: ${LEDGER_OUTBOX_BATCH_SIZE:100}
+      publish-timeout: ${LEDGER_OUTBOX_PUBLISH_TIMEOUT:5s}
+      initial-retry-delay: ${LEDGER_OUTBOX_INITIAL_RETRY_DELAY:1s}
+      max-retry-delay: ${LEDGER_OUTBOX_MAX_RETRY_DELAY:5m}
 
 management:
   endpoints:
