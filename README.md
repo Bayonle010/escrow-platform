@@ -19,6 +19,45 @@ docker compose build
 docker compose up
 ```
 
+### Start and Verify Kafka
+
+Kafka can be started by itself while learning or working on the messaging layer:
+
+```bash
+docker compose up --detach kafka kafka-init
+docker compose ps --all kafka kafka-init
+```
+
+Wait until the broker reports `healthy` and `kafka-init` reports `Exited (0)`.
+The initializer waits for Kafka, creates `payment.events.v1`, and then exits. Ask
+the broker to list its topics:
+
+```bash
+docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+```
+
+The output includes `payment.events.v1`. Topic auto-creation remains disabled;
+`kafka-init` creates the topic explicitly with three partitions, one replica, and
+one required in-sync replica. Its `--if-not-exists` option makes repeated Compose
+starts safe.
+
+Inspect the declared topic configuration:
+
+```bash
+docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic payment.events.v1
+```
+
+Kafka exposes two listener addresses:
+
+```text
+Host tools:        localhost:9092
+Compose services:  kafka:19092
+```
+
+This is a single-node, plaintext KRaft broker for local development only. Its data
+is intentionally ephemeral at this stage and is removed when the container is
+removed.
+
 When the Identity Service is healthy, verify it from another terminal:
 
 ```bash
@@ -155,29 +194,11 @@ curl --request POST http://localhost:8083/api/v1/providers/simulated/payments/{p
 
 The service returns `200 OK` and atomically changes the payment from `PROCESSING` to `SUCCEEDED` while creating one `PaymentSucceeded` outbox event. Replaying the same provider reference is harmless and returns the original result with `replayed: true`. A provider reference cannot be assigned to more than one payment. Set `SIMULATED_PROVIDER_CALLBACK_SECRET` to override the local-only callback secret; a real provider adapter must verify that provider's signed callback instead.
 
-Until Kafka delivery is introduced, send the resulting `PaymentSucceeded` event to the authenticated Ledger Service boundary. Use the event ID, occurrence time, correlation ID, and payload fields stored in the Payment Service `outbox_events` row:
+Delivery to Ledger is automatic. The Payment Service polling publisher locks due outbox rows, publishes them to `payment.events.v1` with `escrowId` as the partition key, and marks each row `PUBLISHED` only after Kafka acknowledges it. Broker failures leave the row `PENDING` with exponential retry backoff.
 
-```bash
-curl --request POST http://localhost:8084/internal/v1/ledger/events/payment-succeeded \
-  --header "Content-Type: application/json" \
-  --header "X-Internal-Event-Secret: local-development-secret" \
-  --data '{
-    "eventId":"{paymentSucceededEventId}",
-    "eventVersion":1,
-    "occurredAt":"{paymentSucceededOccurredAt}",
-    "paymentId":"{paymentId}",
-    "escrowId":"{escrowId}",
-    "payerId":"{payerId}",
-    "amountMinor":100000,
-    "currency":"NGN",
-    "provider":"SIMULATED",
-    "providerReference":"simulated-transaction-1001",
-    "aggregateVersion":1,
-    "correlationId":"{paymentSucceededCorrelationId}"
-  }'
-```
+The Ledger Service consumes `PaymentSucceeded`, validates the event envelope, and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. If Kafka redelivers an event, the consumer inbox makes the financial effect idempotent. The temporary authenticated HTTP boundary remains available for diagnostics during this transition.
 
-The Ledger Service returns `200 OK` and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. Replays return the original journal with `replayed: true`; conflicting terms for the same payment return `409 Conflict`. Set `LEDGER_INTERNAL_EVENT_SECRET` to override the local-development secret. Kafka will replace this temporary HTTP delivery boundary in the next messaging phase.
+See [Payment-to-Ledger Kafka implementation](docs/implementation/payment-to-ledger-kafka.md) for the transaction boundaries, retry behavior, configuration, and tests.
 
 PostgreSQL starts with these local-development defaults:
 
@@ -992,21 +1013,17 @@ The remaining architecture documents provide deeper implementation decisions.
 * Identity registration flow
 * Escrow creation and terms-acceptance flows
 * Idempotent payment initiation and simulated provider confirmation
+* Double-entry Ledger Service funding journal and inbox deduplication
+* Payment outbox publication to `payment.events.v1`
+* Ledger consumption of `PaymentSucceeded`
 
 ### In Progress
 
-* Double-entry Ledger Service funding journal
-* Ledger inbox deduplication and transactional outbox
+* Publishing `EscrowFundingSecured` from the Ledger outbox
 
 ### Next
 
 ```text
-Connect service outboxes to Kafka
-        ↓
-Publish PaymentSucceeded to payment.events.v1
-        ↓
-Consume PaymentSucceeded in Ledger Service
-        ↓
 Publish EscrowFundingSecured to ledger.events.v1
         ↓
 Consume EscrowFundingSecured in Escrow Service

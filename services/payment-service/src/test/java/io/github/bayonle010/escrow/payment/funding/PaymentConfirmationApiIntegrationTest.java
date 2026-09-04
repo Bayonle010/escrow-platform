@@ -30,7 +30,10 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
                         @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "payment-provider.simulated.callback-secret=integration-callback-secret")
+        properties = {
+            "payment-provider.simulated.callback-secret=integration-callback-secret",
+            "payment.outbox.publisher.enabled=false"
+        })
 class PaymentConfirmationApiIntegrationTest {
 
     private static final UUID PAYMENT_ID = UUID.fromString("019c0000-0000-7000-8000-000000000030");

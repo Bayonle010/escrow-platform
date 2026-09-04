@@ -16,7 +16,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
             "management.health.db.enabled=false",
-            "spring.flyway.enabled=false"
+            "spring.flyway.enabled=false",
+            "ledger.messaging.consumer-enabled=false"
         })
 class LedgerServiceApplicationTest {
 

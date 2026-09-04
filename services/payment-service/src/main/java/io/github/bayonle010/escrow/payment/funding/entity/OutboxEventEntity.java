@@ -70,4 +70,21 @@ public class OutboxEventEntity {
 
     @Column(name = "published_at")
     private Instant publishedAt;
+
+    public void markPublished(Instant publicationTime) {
+        status = OutboxStatus.PUBLISHED;
+        attempts++;
+        publishedAt = publicationTime;
+    }
+
+    public void scheduleRetry(Instant retryAt) {
+        status = OutboxStatus.PENDING;
+        attempts++;
+        nextAttemptAt = retryAt;
+    }
+
+    public void markFailed() {
+        status = OutboxStatus.FAILED;
+        attempts++;
+    }
 }

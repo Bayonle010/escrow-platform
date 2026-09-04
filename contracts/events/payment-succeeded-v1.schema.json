@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Bayonle010/escrow-platform/contracts/events/payment-succeeded-v1.schema.json",
+  "title": "PaymentSucceeded v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "aggregateType",
+    "aggregateId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "correlationId",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "aggregateType": { "const": "Payment" },
+    "aggregateId": { "type": "string", "format": "uuid" },
+    "eventType": { "const": "PaymentSucceeded" },
+    "eventVersion": { "const": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "correlationId": { "type": "string", "format": "uuid" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventType",
+        "eventVersion",
+        "occurredAt",
+        "paymentId",
+        "escrowId",
+        "payerId",
+        "amountMinor",
+        "currency",
+        "provider",
+        "providerReference",
+        "status",
+        "aggregateVersion",
+        "correlationId"
+      ],
+      "properties": {
+        "eventType": { "const": "PaymentSucceeded" },
+        "eventVersion": { "const": 1 },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "paymentId": { "type": "string", "format": "uuid" },
+        "escrowId": { "type": "string", "format": "uuid" },
+        "payerId": { "type": "string", "format": "uuid" },
+        "amountMinor": { "type": "integer", "minimum": 1 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "provider": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "providerReference": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "status": { "const": "SUCCEEDED" },
+        "aggregateVersion": { "type": "integer", "minimum": 0 },
+        "correlationId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

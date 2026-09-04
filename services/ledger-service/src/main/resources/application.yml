@@ -5,13 +5,28 @@ spring:
     url: jdbc:postgresql://${LEDGER_DB_HOST:localhost}:${LEDGER_DB_PORT:5435}/${LEDGER_DB_NAME:ledger_db}
     username: ${LEDGER_DB_USER:ledger_local}
     password: ${LEDGER_DB_PASSWORD:ledger_local_password}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${LEDGER_PAYMENT_CONSUMER_GROUP:ledger-payment-succeeded-v1}
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+      concurrency: ${LEDGER_PAYMENT_CONSUMER_CONCURRENCY:3}
 
 server:
   port: ${SERVER_PORT:8084}
   shutdown: graceful
 
 ledger:
-    internal-event-secret: ${LEDGER_INTERNAL_EVENT_SECRET:local-development-secret}
+  internal-event-secret: ${LEDGER_INTERNAL_EVENT_SECRET:local-development-secret}
+  messaging:
+    consumer-enabled: ${LEDGER_MESSAGING_CONSUMER_ENABLED:true}
+    topics:
+      payment-events: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}
 
 management:
   endpoints:

@@ -20,7 +20,7 @@ class PaymentSucceededEventBuilderTest {
         UUID escrowId = UUID.fromString("019c0000-0000-7000-8000-000000000020");
         UUID payerId = UUID.fromString("019c0000-0000-7000-8000-000000000001");
         UUID correlationId = UUID.fromString("019c0000-0000-7000-8000-000000000010");
-        Instant confirmedAt = Instant.parse("2026-08-28T00:00:00Z");
+        Instant confirmedAt = Instant.parse("2026-09-04T00:41:44.299233268Z");
         PaymentEntity payment = PaymentEntity.builder()
                 .paymentId(paymentId)
                 .escrowId(escrowId)
@@ -42,7 +42,11 @@ class PaymentSucceededEventBuilderTest {
         assertThat(event.getEventType()).isEqualTo("PaymentSucceeded");
         assertThat(event.getStatus()).isEqualTo(OutboxStatus.PENDING);
         assertThat(event.getAggregateId()).isEqualTo(paymentId);
+        assertThat(event.getOccurredAt())
+                .isEqualTo(Instant.parse("2026-09-04T00:41:44.299233Z"));
         assertThat(payload.get("eventVersion").asInt()).isEqualTo(1);
+        assertThat(payload.get("occurredAt").asString())
+                .isEqualTo("2026-09-04T00:41:44.299233Z");
         assertThat(payload.get("escrowId").asString()).isEqualTo(escrowId.toString());
         assertThat(payload.get("providerReference").asString())
                 .isEqualTo("simulated-transaction-1001");

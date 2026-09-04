@@ -65,7 +65,7 @@ public class PaymentConfirmationService {
                 });
 
         Instant confirmedAt = clock.instant();
-        payment.        succeed(normalizedReference, confirmedAt);
+        payment.succeed(normalizedReference, confirmedAt);
         try {
             paymentRepository.saveAndFlush(payment);
         } catch (DataIntegrityViolationException exception) {
