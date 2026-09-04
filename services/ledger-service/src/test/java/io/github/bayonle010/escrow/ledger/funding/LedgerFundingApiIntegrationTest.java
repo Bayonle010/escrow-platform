@@ -32,7 +32,10 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "ledger.internal-event-secret=integration-secret")
+        properties = {
+            "ledger.internal-event-secret=integration-secret",
+            "ledger.messaging.consumer-enabled=false"
+        })
 class LedgerFundingApiIntegrationTest {
 
     private static final UUID EVENT_ID = UUID.fromString("019c0000-0000-7000-8000-000000000040");

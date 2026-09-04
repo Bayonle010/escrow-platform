@@ -9,6 +9,27 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+
+payment:
+  messaging:
+    topics:
+      events: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}
+  outbox:
+    publisher:
+      enabled: ${PAYMENT_OUTBOX_PUBLISHER_ENABLED:true}
+      poll-interval: ${PAYMENT_OUTBOX_POLL_INTERVAL:500ms}
+      batch-size: ${PAYMENT_OUTBOX_BATCH_SIZE:100}
+      publish-timeout: ${PAYMENT_OUTBOX_PUBLISH_TIMEOUT:5s}
+      initial-retry-delay: ${PAYMENT_OUTBOX_INITIAL_RETRY_DELAY:1s}
+      max-retry-delay: ${PAYMENT_OUTBOX_MAX_RETRY_DELAY:5m}
 
 server:
   port: ${SERVER_PORT:8083}

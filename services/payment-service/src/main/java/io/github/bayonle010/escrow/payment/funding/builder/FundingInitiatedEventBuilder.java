@@ -1,6 +1,7 @@
 package io.github.bayonle010.escrow.payment.funding.builder;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class FundingInitiatedEventBuilder {
     }
 
     public OutboxEventEntity build(PaymentEntity payment, UUID correlationId) {
-        Instant occurredAt = payment.getCreatedAt();
+        Instant occurredAt = payment.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
         FundingInitiatedPayload payload = new FundingInitiatedPayload(
                 EVENT_TYPE,
                 EVENT_VERSION,

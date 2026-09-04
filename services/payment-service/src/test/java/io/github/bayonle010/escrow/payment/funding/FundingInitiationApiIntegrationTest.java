@@ -30,7 +30,9 @@ import io.github.bayonle010.escrow.payment.funding.domain.EscrowFundingSnapshot;
 import io.github.bayonle010.escrow.payment.funding.gateway.EscrowFundingSnapshotGateway;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "payment.outbox.publisher.enabled=false")
 class FundingInitiationApiIntegrationTest {
 
     private static final UUID ESCROW_ID = UUID.fromString("019c0000-0000-7000-8000-000000000020");
