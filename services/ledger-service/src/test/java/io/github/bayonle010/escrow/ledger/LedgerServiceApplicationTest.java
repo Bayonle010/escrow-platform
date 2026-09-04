@@ -17,7 +17,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
         properties = {
             "management.health.db.enabled=false",
             "spring.flyway.enabled=false",
-            "ledger.messaging.consumer-enabled=false"
+            "ledger.messaging.consumer-enabled=false",
+            "ledger.outbox.publisher.enabled=false"
         })
 class LedgerServiceApplicationTest {
 

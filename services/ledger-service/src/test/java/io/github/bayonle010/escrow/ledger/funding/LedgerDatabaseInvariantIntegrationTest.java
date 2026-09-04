@@ -19,7 +19,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest(properties = "ledger.messaging.consumer-enabled=false")
+@SpringBootTest(properties = {
+    "ledger.messaging.consumer-enabled=false",
+    "ledger.outbox.publisher.enabled=false"
+})
 class LedgerDatabaseInvariantIntegrationTest {
 
     @Container
