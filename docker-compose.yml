@@ -90,6 +90,8 @@ services:
     depends_on:
       escrow-postgres:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     environment:
       SERVER_PORT: "8082"
       ESCROW_DB_HOST: escrow-postgres
@@ -97,6 +99,7 @@ services:
       ESCROW_DB_NAME: ${ESCROW_DB_NAME:-escrow_db}
       ESCROW_DB_USER: ${ESCROW_DB_USER:-escrow_local}
       ESCROW_DB_PASSWORD: ${ESCROW_DB_PASSWORD:-escrow_local_password}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
     ports:
       - "8082:8082"
     healthcheck:

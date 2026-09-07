@@ -67,5 +67,5 @@ acknowledgement, transient retry, permanent malformed-event failure, and
 timestamp precision. A Testcontainers integration test proves a due PostgreSQL
 row becomes one Kafka record and a `PUBLISHED` outbox row.
 
-The next increment is consuming `EscrowFundingSecured` in the Escrow Service
-with inbox deduplication and transitioning the escrow to `FUNDED` exactly once.
+Consumption in the Escrow Service is described in
+[Ledger-to-Escrow Kafka implementation](ledger-to-escrow-kafka.md).

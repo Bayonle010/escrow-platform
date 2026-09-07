@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Bayonle010/escrow-platform/contracts/events/escrow-funded-v1.schema.json",
+  "title": "EscrowFunded v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "escrowId",
+    "journalId",
+    "paymentId",
+    "amountMinor",
+    "currency",
+    "state",
+    "aggregateVersion",
+    "correlationId",
+    "causationId"
+  ],
+  "properties": {
+    "eventType": { "const": "EscrowFunded" },
+    "eventVersion": { "const": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "escrowId": { "type": "string", "format": "uuid" },
+    "journalId": { "type": "string", "format": "uuid" },
+    "paymentId": { "type": "string", "format": "uuid" },
+    "amountMinor": { "type": "integer", "minimum": 1 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "state": { "const": "FUNDED" },
+    "aggregateVersion": { "type": "integer", "minimum": 1 },
+    "correlationId": { "type": "string", "format": "uuid" },
+    "causationId": { "type": "string", "format": "uuid" }
+  }
+}

@@ -9,6 +9,23 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${ESCROW_LEDGER_CONSUMER_GROUP:escrow-funding-secured-v1}
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+      concurrency: ${ESCROW_LEDGER_CONSUMER_CONCURRENCY:3}
+
+escrow:
+  messaging:
+    consumer-enabled: ${ESCROW_MESSAGING_CONSUMER_ENABLED:true}
+    topics:
+      ledger-events: ${LEDGER_EVENTS_TOPIC:ledger.events.v1}
 
 server:
   port: ${SERVER_PORT:8082}

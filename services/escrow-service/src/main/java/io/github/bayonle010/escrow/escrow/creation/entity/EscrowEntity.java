@@ -75,4 +75,13 @@ public class EscrowEntity {
         state = EscrowState.AWAITING_FUNDING;
         updatedAt = acceptedAt;
     }
+
+    public void secureFunding(Instant fundedAt) {
+        if (state != EscrowState.AWAITING_FUNDING) {
+            throw new IllegalStateException(
+                    "Funding cannot be secured while the escrow is in state " + state + ".");
+        }
+        state = EscrowState.FUNDED;
+        updatedAt = fundedAt;
+    }
 }
