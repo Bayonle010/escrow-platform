@@ -19,7 +19,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
             "spring.flyway.enabled=false",
             "spring.jpa.hibernate.ddl-auto=none",
             "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
-            "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false"
+            "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+            "escrow.messaging.consumer-enabled=false"
         })
 class EscrowServiceApplicationTest {
 

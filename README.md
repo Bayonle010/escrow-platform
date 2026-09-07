@@ -196,10 +196,11 @@ The service returns `200 OK` and atomically changes the payment from `PROCESSING
 
 Delivery to Ledger is automatic. The Payment Service polling publisher locks due outbox rows, publishes them to `payment.events.v1` with `escrowId` as the partition key, and marks each row `PUBLISHED` only after Kafka acknowledges it. Broker failures leave the row `PENDING` with exponential retry backoff.
 
-The Ledger Service consumes `PaymentSucceeded`, validates the event envelope, and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. If Kafka redelivers an event, the consumer inbox makes the financial effect idempotent. A polling publisher delivers the resulting Ledger outbox event to `ledger.events.v1`, partitioned by `escrowId`, and records Kafka acknowledgement before marking it `PUBLISHED`.
+The Ledger Service consumes `PaymentSucceeded`, validates the event envelope, and atomically creates one `ESCROW_FUNDING` journal, a provider-clearing debit, an escrow-held credit, both balance projections, the consumer inbox record, and one `EscrowFundingSecured` outbox event. If Kafka redelivers an event, the consumer inbox makes the financial effect idempotent. A polling publisher delivers the resulting Ledger outbox event to `ledger.events.v1`, partitioned by `escrowId`, and records Kafka acknowledgement before marking it `PUBLISHED`. The Escrow Service consumes that event and atomically records its inbox claim, transitions `AWAITING_FUNDING` to `FUNDED`, and inserts one `EscrowFunded` outbox event.
 
 See [Payment-to-Ledger Kafka implementation](docs/implementation/payment-to-ledger-kafka.md) for the transaction boundaries, retry behavior, configuration, and tests.
 See [Ledger outbox Kafka implementation](docs/implementation/ledger-outbox-kafka.md) for publication of `EscrowFundingSecured`.
+See [Ledger-to-Escrow Kafka implementation](docs/implementation/ledger-to-escrow-kafka.md) for the idempotent `FUNDED` transition.
 
 PostgreSQL starts with these local-development defaults:
 
@@ -1018,10 +1019,11 @@ The remaining architecture documents provide deeper implementation decisions.
 * Payment outbox publication to `payment.events.v1`
 * Ledger consumption of `PaymentSucceeded`
 * Ledger outbox publication of `EscrowFundingSecured` to `ledger.events.v1`
+* Escrow consumption of `EscrowFundingSecured` and exactly-once `FUNDED` transition
 
 ### In Progress
 
-* Consuming `EscrowFundingSecured` in the Escrow Service
+* Failure-path and load testing for the funding event chain
 
 ### Delivery Path
 

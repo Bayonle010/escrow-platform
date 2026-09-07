@@ -194,3 +194,5 @@ ledger.events.v1
 ```
 
 See [Ledger outbox Kafka implementation](ledger-outbox-kafka.md).
+See [Ledger-to-Escrow Kafka implementation](ledger-to-escrow-kafka.md) for the
+consumer and authoritative state transition.

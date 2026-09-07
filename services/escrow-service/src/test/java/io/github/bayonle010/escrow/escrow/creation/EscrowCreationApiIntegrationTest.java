@@ -22,7 +22,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "escrow.messaging.consumer-enabled=false")
 class EscrowCreationApiIntegrationTest {
 
     private static final UUID BUYER_ID = UUID.fromString("019c0000-0000-7000-8000-000000000001");
