@@ -171,8 +171,6 @@ services:
       start_period: 20s
     stop_grace_period: 30s
 
-<<<<<<< Updated upstream
-=======
   funding-chain-system-test:
     profiles: ["system-tests"]
     build:
@@ -232,7 +230,6 @@ services:
       - grafana-data:/var/lib/grafana
     stop_grace_period: 30s
 
->>>>>>> Stashed changes
   postgres:
     image: postgres:18.6-bookworm
     environment:
@@ -310,9 +307,6 @@ volumes:
   escrow-postgres-data:
   payment-postgres-data:
   ledger-postgres-data:
-<<<<<<< Updated upstream
-=======
   funding-chain-maven-cache:
   prometheus-data:
   grafana-data:
->>>>>>> Stashed changes

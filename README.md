@@ -88,8 +88,6 @@ The Ledger Service health endpoint is available at:
 curl http://localhost:8084/actuator/health
 ```
 
-<<<<<<< Updated upstream
-=======
 ### Run the Phase 1 Observability Stack
 
 Start the platform with Prometheus and Grafana:
@@ -148,7 +146,6 @@ Run this only against a disposable local Compose environment. It temporarily
 stops the Compose Kafka service, always attempts to restore it, leaves the other
 services running, and does not delete volumes.
 
->>>>>>> Stashed changes
 Open Swagger UI in a browser:
 
 ```text
@@ -1081,34 +1078,23 @@ The remaining architecture documents provide deeper implementation decisions.
 * Ledger consumption of `PaymentSucceeded`
 * Ledger outbox publication of `EscrowFundingSecured` to `ledger.events.v1`
 * Escrow consumption of `EscrowFundingSecured` and exactly-once `FUNDED` transition
-<<<<<<< Updated upstream
-
-### In Progress
-
-* Failure-path and load testing for the funding event chain
-=======
 * Automated Kafka outage and recovery system test for the funding chain
 * Phase 1 observability with Prometheus metrics, alert rules, and a provisioned Grafana funding-pipeline dashboard
 
 ### In Progress
 
 * Funding event-chain load testing
->>>>>>> Stashed changes
 
 ### Delivery Path
 
 ```text
-<<<<<<< Updated upstream
-Publish EscrowFundingSecured to ledger.events.v1
+Funding event-chain load testing
         ↓
-Consume EscrowFundingSecured in Escrow Service
-        ↓
-Transition escrow to FUNDED exactly once
-=======
 Structured JSON logs and Loki
->>>>>>> Stashed changes
         ↓
-Run failure and load tests
+OpenTelemetry traces and Tempo
+        ↓
+CloudWatch if and when the platform is deployed to AWS
 ```
 
 ---

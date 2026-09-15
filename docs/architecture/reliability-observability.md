@@ -608,9 +608,6 @@ Is reconciliation required?
 
 ---
 
-<<<<<<< Updated upstream
-## 30. Core Rules
-=======
 ## 30. Observability Tooling and Adoption Plan
 
 The project will adopt observability tooling in stages. The tools have distinct
@@ -674,7 +671,6 @@ the storage backend can change without rewriting business code.
 ---
 
 ## 31. Core Rules
->>>>>>> Stashed changes
 
 ```text
 No remote call without timeout.
