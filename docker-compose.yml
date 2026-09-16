@@ -171,6 +171,68 @@ services:
       start_period: 20s
     stop_grace_period: 30s
 
+<<<<<<< Updated upstream
+=======
+  funding-chain-system-test:
+    profiles: ["system-tests"]
+    build:
+      context: .
+      dockerfile: system-tests/funding-chain/Dockerfile
+    working_dir: /workspace
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-escrow-platform}
+      ESCROW_BASE_URL: http://escrow-service:8082
+      PAYMENT_BASE_URL: http://payment-service:8083
+      SIMULATED_PROVIDER_CALLBACK_SECRET: ${SIMULATED_PROVIDER_CALLBACK_SECRET:-local-development-secret}
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - funding-chain-maven-cache:/root/.m2
+
+  prometheus:
+    image: prom/prometheus:v3.13.0
+    profiles: ["observability"]
+    depends_on:
+      identity-service:
+        condition: service_healthy
+      escrow-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      ledger-service:
+        condition: service_healthy
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    stop_grace_period: 30s
+
+  grafana:
+    image: grafana/grafana:13.2.0
+    profiles: ["observability"]
+    depends_on:
+      prometheus:
+        condition: service_started
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    stop_grace_period: 30s
+
+>>>>>>> Stashed changes
   postgres:
     image: postgres:18.6-bookworm
     environment:
@@ -248,3 +310,9 @@ volumes:
   escrow-postgres-data:
   payment-postgres-data:
   ledger-postgres-data:
+<<<<<<< Updated upstream
+=======
+  funding-chain-maven-cache:
+  prometheus-data:
+  grafana-data:
+>>>>>>> Stashed changes

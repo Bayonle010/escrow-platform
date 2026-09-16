@@ -608,7 +608,73 @@ Is reconciliation required?
 
 ---
 
+<<<<<<< Updated upstream
 ## 30. Core Rules
+=======
+## 30. Observability Tooling and Adoption Plan
+
+The project will adopt observability tooling in stages. The tools have distinct
+roles and are not all required in every environment.
+
+| Tool | Responsibility | Adoption decision |
+| --- | --- | --- |
+| Micrometer | Instrument JVM, HTTP, database-pool, Kafka, and business metrics | Use in every Spring service |
+| OpenTelemetry | Provide vendor-neutral trace and context instrumentation | Use in every service as tracing is introduced |
+| Prometheus | Scrape and retain application and platform metrics | Use for local development and self-hosted environments |
+| Grafana | Query, visualize, and alert across observability backends | Use as the primary engineering dashboard |
+| Loki | Centralize structured application logs | Add after correlation IDs and JSON logging are consistent |
+| Tempo | Store and query distributed traces | Add after trace context crosses HTTP and Kafka boundaries |
+| CloudWatch | Observe AWS-native infrastructure and provide AWS alarms | Add only when an AWS deployment exists |
+
+Target data flow:
+
+```text
+Spring services --metrics--> Prometheus ----+
+                --logs-----> Loki ----------+--> Grafana
+                --traces---> OTel --> Tempo -+
+
+AWS infrastructure ----------------------------> CloudWatch
+```
+
+Implementation order:
+
+```text
+Phase 1: Prometheus + Grafana (implemented)
+         API, JVM, database pool, outbox backlog, Kafka consumer lag,
+         ledger imbalance, and funding-flow dashboards and alerts
+
+Phase 2: structured JSON logs + Loki
+         searchable by service, correlationId, escrowId, paymentId,
+         eventId, event type, and outcome
+
+Phase 3: OpenTelemetry + Tempo
+         trace HTTP calls, provider callbacks, outbox publication,
+         Kafka consumption, and database work across the funding chain
+
+Phase 4: CloudWatch, conditional on AWS deployment
+         AWS service metrics, infrastructure logs, and AWS-native alarms
+```
+
+The Phase 1 local stack is opt-in through the Compose `observability` profile.
+Prometheus configuration and alert rules live under `observability/prometheus`,
+while Grafana provisioning and the funding-pipeline dashboard live under
+`observability/grafana`. Start both with:
+
+```bash
+docker compose --profile observability up --build --detach prometheus grafana
+```
+
+CloudWatch must not automatically duplicate every signal already retained in
+Prometheus, Loki, or Tempo. When AWS deployment work begins, an architecture
+decision record must choose which application signals remain in the Grafana
+stack and which are stored in CloudWatch, based on operational requirements,
+retention, and cost. Application instrumentation must remain vendor-neutral so
+the storage backend can change without rewriting business code.
+
+---
+
+## 31. Core Rules
+>>>>>>> Stashed changes
 
 ```text
 No remote call without timeout.
