@@ -88,6 +88,67 @@ The Ledger Service health endpoint is available at:
 curl http://localhost:8084/actuator/health
 ```
 
+<<<<<<< Updated upstream
+=======
+### Run the Phase 1 Observability Stack
+
+Start the platform with Prometheus and Grafana:
+
+```bash
+docker compose --profile observability up --build --detach prometheus grafana
+```
+
+Open the provisioned funding-pipeline dashboard:
+
+```text
+Grafana:            http://localhost:3000
+Prometheus targets: http://localhost:9090/targets
+Prometheus alerts:  http://localhost:9090/alerts
+```
+
+The local Grafana credentials default to `admin` / `admin`. Override them with
+`GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. These defaults and the
+published management ports are for local development only.
+
+Prometheus scrapes `/actuator/prometheus` from every service. The initial
+dashboard covers service availability, HTTP traffic and errors, Payment and
+Ledger outbox state, oldest pending-event age, Kafka consumer lag, ledger
+imbalance, and JVM heap usage. The initial alert rules cover service outages,
+HTTP 5xx rate, stale or failed outbox records, consumer lag, and any ledger
+imbalance.
+
+Stop only the observability containers with:
+
+```bash
+docker compose --profile observability stop grafana prometheus
+```
+
+### Run the Kafka Recovery System Test
+
+The opt-in funding-chain system test proves that a `PaymentSucceeded` event is
+retained in the Payment outbox while Kafka is unavailable and is delivered after
+the broker recovers:
+
+```bash
+docker compose --profile system-tests run --build --rm funding-chain-system-test
+```
+
+The test runner contains Maven and Java 21, so the host only needs Docker with
+the Compose plugin. No host Java or Maven installation is required. The Maven
+profile can still be run directly with `./mvnw verify -Psystem-tests` in CI or
+on a machine that already has Java 21.
+
+The test builds and starts the Escrow, Payment, and Ledger Compose services,
+creates a unique escrow and payment, stops Kafka, confirms the payment, and
+checks that the event remains `PENDING`. It then restarts Kafka and verifies that
+the escrow becomes `FUNDED` exactly once, the Ledger journal is balanced, and
+the consumer inboxes contain one claim each.
+
+Run this only against a disposable local Compose environment. It temporarily
+stops the Compose Kafka service, always attempts to restore it, leaves the other
+services running, and does not delete volumes.
+
+>>>>>>> Stashed changes
 Open Swagger UI in a browser:
 
 ```text
@@ -1020,19 +1081,32 @@ The remaining architecture documents provide deeper implementation decisions.
 * Ledger consumption of `PaymentSucceeded`
 * Ledger outbox publication of `EscrowFundingSecured` to `ledger.events.v1`
 * Escrow consumption of `EscrowFundingSecured` and exactly-once `FUNDED` transition
+<<<<<<< Updated upstream
 
 ### In Progress
 
 * Failure-path and load testing for the funding event chain
+=======
+* Automated Kafka outage and recovery system test for the funding chain
+* Phase 1 observability with Prometheus metrics, alert rules, and a provisioned Grafana funding-pipeline dashboard
+
+### In Progress
+
+* Funding event-chain load testing
+>>>>>>> Stashed changes
 
 ### Delivery Path
 
 ```text
+<<<<<<< Updated upstream
 Publish EscrowFundingSecured to ledger.events.v1
         ↓
 Consume EscrowFundingSecured in Escrow Service
         ↓
 Transition escrow to FUNDED exactly once
+=======
+Structured JSON logs and Loki
+>>>>>>> Stashed changes
         ↓
 Run failure and load tests
 ```
